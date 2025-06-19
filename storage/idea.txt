@@ -1,0 +1,10 @@
+
+count food storage in the app
+where we can view, add, delete
+when running low on items it will send an email reminder on the food to buy
+
+superuser
+username: olufayo
+password: olufayo(CAPS)
+
+passwords for most is : @Olufayo15
