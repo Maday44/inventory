@@ -1,7 +1,7 @@
 import data_wizard
-from .models import food_items, other_items, user, family
+from .models import Food_items, Other_items, User, Family
 
-data_wizard.register(food_items)
-data_wizard.register(other_items)
-data_wizard.register(user)
-data_wizard.register(family)
+data_wizard.register(Food_items)
+data_wizard.register(Other_items)
+data_wizard.register(User)
+data_wizard.register(Family)

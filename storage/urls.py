@@ -1,17 +1,15 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from storage.api_views import FoodViewSet, OtherViewSet, UserViewSet, FamViewSet
+# sub app urls
 
-router = DefaultRouter()
-router.register(r'Food', FoodViewSet, basename='Food Items')
-router.register(r'Other', OtherViewSet, basename='Other Items')
-router.register(r'Users', UserViewSet, basename='Users')
-router.register(r'Family', FamViewSet, basename='Families')
+from django.contrib import admin
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
-    # API ROUTES
-    path('api/', include(router.urls)),
+    path('admin/', admin.site.urls),
+    path('datawizard/', include('data_wizard.urls')),
+    path('i18n/', include('django.conf.urls.i18n')),
+    path('accounts/', include('django.contrib.auth.urls')),
 
-    # Optionally, if you want to log in to the browsable API
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-]
+    path('', include('home_inventory.urls')),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

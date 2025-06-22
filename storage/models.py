@@ -5,10 +5,8 @@ from django.utils.text import slugify
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver 
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Permission, AbstractUser
 from django.contrib.contenttypes.models import ContentType
-
-# Create your models here.
 
 # food_item models
 class Food_items(models.Model):
@@ -84,37 +82,29 @@ class User(models.Model):
 
 
 # user permissions set
-'''
-@receiver(post_save, sender=user)
+@receiver(post_save, sender=User)
 def assign_permissions(sender, instance, created, **kwargs):
     if created:
-        permissions = []
-        food_content_type = ContentType.objects.get_for_model(food_items)
-        other_content_type = ContentType.objects.get_for_model(other_items)
-        other_content_type = ContentType.objects.get_for_model(other_items)
+        food_type = ContentType.objects.get_for_model(Food_items)
+        other_type = ContentType.objects.get_for_model(Other_items)
 
-        if instance.role == user.Role.EDITOR:
-            permissions += Permission.objects.filter(
-                content_type__in=[album_content_type, song_content_type],
-                codename__in=["add_album", "change_album", "delete_album", "view_album",
-                              "add_song", "change_song", "delete_song", "view_song"]
+        if instance.role == User.Role.ADMIN:
+            perms = Permission.objects.filter(
+                content_type__in=[food_type, other_type],
+                codename__in=[
+                    "add_fooditems", "change_fooditems", "delete_fooditems", "view_fooditems",
+                    "add_otheritems", "change_otheritems", "delete_otheritems", "view_otheritems"
+                ]
             )
-        elif instance.role == user.Role.VIEWER:
-            permissions += Permission.objects.filter(
-                content_type=album_content_type, codename="view_album"
+        else:  # role is USER
+            perms = Permission.objects.filter(
+                content_type__in=[food_type, other_type],
+                codename__in=[
+                    "change_fooditems", "view_fooditems",
+                    "change_otheritems", "view_otheritems"
+                ]
             )
-            permissions += Permission.objects.filter(
-                content_type=song_content_type, codename="view_song"
-            )
-        elif instance.role == user.Role.ARTIST:
-            permissions += Permission.objects.filter(
-                content_type=album_content_type, codename="view_album"
-            )
-            permissions += Permission.objects.filter(
-                content_type=song_content_type, codename="view_song"
-            )
-
-'''
+        instance.user_permissions.set(perms)
 
 # family model
 class Family(models.Model):
