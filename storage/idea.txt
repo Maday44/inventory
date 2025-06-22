@@ -11,3 +11,7 @@ passwords for most is : @Olufayo15
 
 
 git rules
+git add -A
+git commit -m ""
+git psuh
+git status
