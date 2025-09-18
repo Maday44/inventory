@@ -10,8 +10,15 @@ from django.contrib.contenttypes.models import ContentType
 
 # food_item models
 class Food_items(models.Model):
+    '''
     image = models.ImageField(default="public_image/items/default_food.jpg", 
                               upload_to="public_image/items/actual_items/food")
+    '''
+    image = models.ImageField(
+    default="items/default_food.jpg",   # ✅ inside /media/items/
+    upload_to="items/actual_items/food" # ✅ inside /media/items/...
+)
+
     brand = models.CharField(blank=True, max_length=512)
     title = models.CharField(unique=False, blank=False, max_length=512)
     quantity =  models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(50)])

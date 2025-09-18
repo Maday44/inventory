@@ -26,6 +26,8 @@ SECRET_KEY = 'django-insecure-a$r593!fp_p=u&uh^mx^xp4l#00=lu(v5hsq2j&3u4w$o*lj4h
 DEBUG = True
 
 ALLOWED_HOSTS = []
+APPEND_SLASH = True
+
 
 
 # Application definition
@@ -41,10 +43,11 @@ INSTALLED_APPS = [
     'data_wizard',
     'data_wizard.sources',
     'rest_framework',
+    'corsheaders',
 ]
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': None,
     'PAGE_SIZE': 10
 }
 
@@ -56,7 +59,16 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+CORS_ALLOW_ALL_ORIGINS = True
+
 
 ROOT_URLCONF = 'home_inventory.urls'
 
@@ -130,3 +142,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# may be subject to chnage
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

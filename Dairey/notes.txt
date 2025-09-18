@@ -1,0 +1,5 @@
+
+model changes 
+- python3 manage.py makemigrations
+- python3 manage.py migrate
+and the run the server:  python3 manage.py runserver

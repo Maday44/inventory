@@ -1,0 +1,4 @@
+# node not working, many have to install and reinstall - FIXED  
+
+# clea templates to all be in node frontend folder
+

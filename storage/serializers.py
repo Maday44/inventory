@@ -19,7 +19,6 @@ class FoodSerializer(serializers.ModelSerializer):
         model = Food_items
         fields = '__all__'
     
-    
 
 class OtherSerializer(serializers.ModelSerializer):
     class Meta:
