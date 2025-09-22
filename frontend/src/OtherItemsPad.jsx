@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-
 // hard code number of item shown
 const MAX_ITEMS = 6
 

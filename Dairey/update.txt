@@ -2,3 +2,8 @@
 
 # clea templates to all be in node frontend folder
 
+# 22/09/205
+finish views.py
+and look at webpage and add styling later
+change react to html/css/Js
+react too complex learn later

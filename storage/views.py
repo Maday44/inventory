@@ -24,10 +24,10 @@ def view_all_items(request):
     return render(request, 'home.jsx', {'foods': food_items, 'others': other_items})
 
 @login_required
-# home page
+# see all the food
 def all_food(request):
     food_items = Food_items.objects.all().order_by('exp_date')
-    return render(request, 'all_food.jsx', {'foods': food_items})
+    return render(request, 'AllFoodPage.jsx')
 
-def home(request):
-    pass
+
+

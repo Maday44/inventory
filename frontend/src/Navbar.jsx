@@ -18,7 +18,7 @@ const AppNavbar = () => {
         <Navbar.Collapse id="main-navbar">
           <Nav className="ms-auto gap-3">
             <Nav.Link as={Link} to="/">Home</Nav.Link>
-            <Nav.Link as={Link} to="/food">Food</Nav.Link>
+            <Nav.Link as={Link} to="/all_food">Food</Nav.Link>
             <Nav.Link as={Link} to="/other">Other Items</Nav.Link>
             <Nav.Link as={Link} to="/profile">Profile</Nav.Link>
           </Nav>
@@ -29,3 +29,4 @@ const AppNavbar = () => {
 };
 
 export default AppNavbar;
+
