@@ -14,5 +14,6 @@ page timeing out
 more help: https://surreylearn.surrey.ac.uk/d2l/le/lessons/267683/topics/3184862
 
 #02/01
-using html only works with django can use react apps seperatlry
+using html only works with django can use react apps seperate
 add users and test the functionality and plan
+Plan app users and permissions and overall application
