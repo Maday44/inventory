@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logged Out</title>
+</head>
+<body>
+    <h1>You have successfully logged out</h1>
+    <a href="{% url 'login' %}">Login</a>
+</body>
+
+{% endblock %}

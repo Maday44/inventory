@@ -7,3 +7,12 @@ finish views.py
 and look at webpage and add styling later
 change react to html/css/Js
 react too complex learn later
+
+
+#30/09
+page timeing out
+more help: https://surreylearn.surrey.ac.uk/d2l/le/lessons/267683/topics/3184862
+
+#02/01
+using html only works with django can use react apps seperatlry
+add users and test the functionality and plan

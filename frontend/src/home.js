@@ -1,6 +1,5 @@
 // where all pages must be rendered 
 
-/*
 import React from "react";
 // import FoodItemsPad from "./home"; // without .jsx
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -15,25 +14,6 @@ function App() {
       <Home />
   
     </div>
-  );
-}
-
-export default App;
-
-*/
-
-import { Route, Routes } from "react-router-dom";
-
-import Board from "./AllFoodPage";
-import Home from "./home";
-function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<Home />}>
-
-      
-      </Route>
-    </Routes>
   );
 }
 
