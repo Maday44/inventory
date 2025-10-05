@@ -10,22 +10,21 @@
 
 {% verbatim %}
 <script type="text/babel">
-
   const MAX_ITEMS = 6;
 
-  // Food Items Component
-  const FoodItemsPad = () => {
-    const [foodItems, setFoodItems] = React.useState([]);
+  // Other Items Component
+  const OtherItemsPad = () => {
+    const [otherItems, setOtherItems] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
-      axios.get("http://127.0.0.1:8000/api/Food%20items/")
+      axios.get("http://127.0.0.1:8000/api/Other%20items/")
         .then((response) => {
-          setFoodItems(response.data.results || response.data || []);
+          setOtherItems(response.data.results || response.data || []);
           setLoading(false);
         })
         .catch((error) => {
-          console.error("Failed to fetch food items:", error);
+          console.error("Failed to fetch other items:", error);
           setLoading(false);
         });
     }, []);
@@ -34,7 +33,7 @@
 
     return (
       <div className="container py-5">
-        <h2 className="text-center mb-5 fw-bold">Food Items</h2>
+        <h2 className="text-center mb-5 fw-bold">Other Items</h2>
         <div
           className="food-grid"
           style={{
@@ -43,10 +42,10 @@
             gap: "20px"
           }}
         >
-          {foodItems.slice(0, MAX_ITEMS).map((item) => (
+          {otherItems.slice(0, MAX_ITEMS).map((item) => (
             <a
               key={item.id}
-              href={`/food/${item.id}/`}
+              href={`/other/${item.id}/`}
               className="text-decoration-none text-dark"
             >
               <div
@@ -89,9 +88,6 @@
                     <p className="card-text text-muted mb-1">
                       <strong>Quantity:</strong> {item.quantity}
                     </p>
-                    <p className="card-text text-muted mb-0">
-                      <strong>Expires:</strong> {item.exp_date || "Unknown"}
-                    </p>
                   </div>
                 </div>
               </div>
@@ -101,12 +97,12 @@
       </div>
     );
   };
- 
+
   // Home Page
   const HomePage = () => (
     <div>
       <h1 className="my-4 text-center">Welcome to Family Dashboard</h1>
-      <FoodItemsPad />
+      <OtherItemsPad />
     </div>
   );
 

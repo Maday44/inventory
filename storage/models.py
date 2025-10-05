@@ -15,8 +15,8 @@ class Food_items(models.Model):
                               upload_to="public_image/items/actual_items/food")
     '''
     image = models.ImageField(
-    default="items/default_food.jpg",   # ✅ inside /media/items/
-    upload_to="items/actual_items/food" # ✅ inside /media/items/...
+    default="items/default_food.jpg",   
+    upload_to="items/actual_items/food" 
 )
 
     brand = models.CharField(blank=True, max_length=512)
@@ -70,32 +70,30 @@ class Other_items(models.Model):
         return f"{self.title}"
     
 
-# user model
-class User(models.Model):
+# user/profile model
+class Profile(models.Model):
     class Role(models.TextChoices):
-        ADMIN = "admin", ("Admin")
-        USER = "user", ("User")
+        OWNER = "owner","Owner"
+        ADMIN = "admin", "Admin"
+        USER = "user", "User"
 
-    profile_pic = models.ImageField(default="profile_pics/default_profile_pic.jpg", 
-                                    upload_to="profile_pic/personal_images")
-    family = models.ForeignKey("family", on_delete=models.CASCADE, related_name="members")
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    profile_pic = models.ImageField(default="profile_pics/default_profile_pic.jpg", upload_to="profile_pic/personal_images")
+    family = models.ForeignKey("Family", on_delete=models.CASCADE, related_name="members")
     display_name = models.CharField(max_length=512)
     role = models.CharField(max_length=10, choices=Role.choices)
 
     def __str__(self):
         return f"{self.display_name} ({self.role})"
 
-
-
-# user permissions set
 @receiver(post_save, sender=User)
 def assign_permissions(sender, instance, created, **kwargs):
     if created:
+        profile = instance.profile
         food_type = ContentType.objects.get_for_model(Food_items)
         other_type = ContentType.objects.get_for_model(Other_items)
 
-        if instance.role == User.Role.ADMIN:
+        if profile.role in [Profile.Role.ADMIN, Profile.Role.OWNER]:
             perms = Permission.objects.filter(
                 content_type__in=[food_type, other_type],
                 codename__in=[
@@ -103,7 +101,7 @@ def assign_permissions(sender, instance, created, **kwargs):
                     "add_otheritems", "change_otheritems", "delete_otheritems", "view_otheritems"
                 ]
             )
-        else:  # role is USER
+        else:
             perms = Permission.objects.filter(
                 content_type__in=[food_type, other_type],
                 codename__in=[
@@ -113,10 +111,10 @@ def assign_permissions(sender, instance, created, **kwargs):
             )
         instance.user_permissions.set(perms)
 
+
 # family model
 class Family(models.Model):
     name = models.CharField(unique=False, blank=False, max_length=512)
-    number = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(50)])
     
     def __str__(self):
-        return f"{self.name}, has {self.number} members"
+        return f"{self.name}, has {self.members.count()} members"
