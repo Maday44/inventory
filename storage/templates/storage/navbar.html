@@ -1,0 +1,41 @@
+{% load static %}
+{% load i18n %}
+
+<header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom bg-light shadow-sm fixed-top">
+  <div class="col-md-3 mb-2 mb-md-0 px-4">
+    <a href="{% url 'view_all_items' %}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+      <span class="fs-4 fw-bold text-primary">{% trans 'My Home Inventory' %}</span>
+    </a>
+  </div>
+
+  <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
+    <li><a href="{% url 'all_food' %}" class="nav-link px-3 text-dark">{% trans 'Food Items' %}</a></li>
+    <li><a href="{% url 'all_other_items' %}" class="nav-link px-3 text-dark">{% trans 'Other Items' %}</a></li>
+    <li><a href="{% url 'all_other_items' %}" class="nav-link px-3 text-dark">{% trans 'Shopping List' %}</a></li>
+    <li><a href="{% url 'all_other_items' %}" class="nav-link px-3 text-dark">{% trans 'Memebers' %}</a></li>
+
+
+  </ul>
+
+  <div class="col-md-3 text-end px-4">
+    {% if user.is_authenticated %}
+      <span class="me-3 text-secondary">
+        <a href="{% url 'profile_detail' user.id %}" class="text-decoration-none text-dark">
+          {{ user.profile.display_name }} 
+          ({{ user.profile.get_role_display }})
+        </a>
+      </span>
+
+      <form action="{% url 'logout' %}" method="post" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-primary me-2">{% trans 'Logout' %}</button>
+      </form>
+
+
+
+
+    {% else %}
+      <a href="{% url 'login' %}" class="btn btn-outline-primary me-2">{% trans 'Login' %}</a>
+    {% endif %}
+  </div>
+</header>
