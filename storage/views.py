@@ -4,22 +4,25 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import Food_items, Other_items, Profile
 from django.contrib.auth import logout
 
+from django.contrib.auth.decorators import login_required, permission_required
+from django.shortcuts import render, redirect
+from .forms import FoodForm  # make sure this exists
 
 @login_required
 @permission_required('storage.add_fooditems', raise_exception=True)
 def add_food_item(request):
-    # Only admins can access this view
     if request.method == "POST":
-        # Assuming you have a form to handle creation
         form = FoodForm(request.POST, request.FILES)
         if form.is_valid():
             food = form.save(commit=False)
             food.family = request.user.profile.family  # assign user's family
             food.save()
-            return redirect("all_food")
+            return redirect("all_food")  # redirect to food list
     else:
         form = FoodForm()
-    return render(request, "storage/food_detail.html", {"form": form})
+
+    # Render a dedicated 'add food' template (not food_detail)
+    return render(request, "storage/add_food.html", {"form": form})
 
 
 @login_required
@@ -61,15 +64,15 @@ def all_other(request):
     return render(request, 'storage/allOtherPage.html', {'Others': other_items})
 
 
-def food_detail(request, id):
+def food_detail(request, slug):
     # Only show item if it belongs to user's family
-    food = get_object_or_404(Food_items, id=id, family=request.user.profile.family)
+    food = get_object_or_404(Food_items, slug=slug, family=request.user.profile.family)
     return render(request, "storage/food_detail.html", {"food": food})
 
 
-def other_detail(request, id):
+def other_detail(request, slug):
     # Only show item if it belongs to user's family
-    other = get_object_or_404(Other_items, id=id, family=request.user.profile.family)
+    other = get_object_or_404(Other_items, slug=slug, family=request.user.profile.family)
     return render(request, "storage/other_detail.html", {"other": other})
 
 

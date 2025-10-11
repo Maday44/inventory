@@ -13,13 +13,13 @@ urlpatterns = [
     
     #food
     path('all_food_items', views.all_food, name='all_food'),
-    path('food/<int:id>/', views.food_detail, name='food-detail'),
+    path('food/<slug:slug>/', views.food_detail, name='food-detail'),
     path('add_food', views.add_food_item, name='add_food_item'),
     path('edit_food', views.edit_item_quantity, name='edit_item_quantity'),
     
     # other items
     path('all_other_items', views.all_other, name='all_other_items'),
-    path('other/<int:id>/', views.other_detail, name='other-detail'),
+    path('other/<slug:slug>/', views.other_detail, name='other-detail'),
     
     #profile
     path("profile/", views.profile_detail, name="my_profile"),  # view your own
