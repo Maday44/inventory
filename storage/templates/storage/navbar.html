@@ -18,11 +18,19 @@
     {% if user.is_authenticated %}
       <span class="me-3 text-secondary">
         <a href="{% url 'profile_detail' user.id %}" class="text-decoration-none text-dark">
-                {{ user.profile.display_name }} 
-                ({{ user.profile.get_role_display }})
-            </a>
+          {{ user.profile.display_name }} 
+          ({{ user.profile.get_role_display }})
+        </a>
       </span>
-      <a href="{% url 'logout' %}" class="btn btn-outline-primary me-2">{% trans 'Logout' %}</a>
+
+      <form action="{% url 'logout' %}" method="post" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-primary me-2">{% trans 'Logout' %}</button>
+      </form>
+
+
+
+
     {% else %}
       <a href="{% url 'login' %}" class="btn btn-outline-primary me-2">{% trans 'Login' %}</a>
     {% endif %}

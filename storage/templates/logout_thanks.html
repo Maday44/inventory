@@ -1,0 +1,19 @@
+{% load static %}
+{% load i18n %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% trans "Logged Out" %}</title>
+    <meta http-equiv="refresh" content="3;url={% url 'login' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+</head>
+<body class="d-flex justify-content-center align-items-center vh-100 bg-light">
+    <div class="text-center">
+        <h2 class="mb-3">{% trans "Thanks for logging out!" %}</h2>
+        <p>{% trans "You will be redirected to the login page shortly..." %}</p>
+        <a href="{% url 'login' %}" class="btn btn-primary mt-2">{% trans "Go to Login Now" %}</a>
+    </div>
+</body>
+</html>

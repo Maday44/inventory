@@ -2,29 +2,33 @@
 {% load i18n %}
 
 <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
-    <div class="col-md-3 mb-2 mb-md-0">
-        <a class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
-            <span class="fs-4">{% trans 'My Home Inventory' %}</span>
-        </a>
-    </div>
+  <div class="col-md-3 mb-2 mb-md-0">
+    <a class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+      <span class="fs-4">{% trans 'My Home Inventory' %}</span>
+    </a>
+  </div>
 
-    <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
-        <h5><a href="{% url 'view_all_items' %}" class="nav-link px-2">{% trans 'Home' %}</a></h5>
-    </ul>
+  <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
+    <h5><a href="{% url 'view_all_items' %}" class="nav-link px-2">{% trans 'Home' %}</a></h5>
+  </ul>
 
-<div class="col-md-3 text-end">
+  <div class="col-md-3 text-end">
     {% if user.is_authenticated %}
-        <span class="me-3">
-            <a href="{% url 'profile_detail' user.id %}" class="text-decoration-none text-dark">
-                {{ user.profile.display_name }} 
-                ({{ user.profile.get_role_display }})
-            </a>
-        </span>
-        <a href="{% url 'logout' %}" class="btn btn-outline-primary me-2">{% trans 'Logout' %}</a>
+      <span class="me-3">
+        <a href="{% url 'profile_detail' user.id %}" class="text-decoration-none text-dark">
+          {{ user.profile.display_name }} 
+          ({{ user.profile.get_role_display }})
+        </a>
+      </span>
+
+
+    <form action="{% url 'logout' %}" method="post" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-primary me-2">{% trans 'Logout' %}</button>
+    </form>
+
     {% else %}
-        <a href="{% url 'login' %}" class="btn btn-outline-primary me-2">{% trans 'Login' %}</a>
+      <a href="{% url 'login' %}" class="btn btn-outline-primary me-2">{% trans 'Login' %}</a>
     {% endif %}
-</div>
-
+  </div>
 </header>
-

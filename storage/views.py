@@ -1,48 +1,75 @@
-
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Food_items, Other_items, Profile
-from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth import logout
+
 
 @login_required
 @permission_required('storage.add_fooditems', raise_exception=True)
 def add_food_item(request):
     # Only admins can access this view
-    return render(request,"storage/food_detail.html")
+    if request.method == "POST":
+        # Assuming you have a form to handle creation
+        form = FoodForm(request.POST, request.FILES)
+        if form.is_valid():
+            food = form.save(commit=False)
+            food.family = request.user.profile.family  # assign user's family
+            food.save()
+            return redirect("all_food")
+    else:
+        form = FoodForm()
+    return render(request, "storage/food_detail.html", {"form": form})
+
 
 @login_required
 @permission_required('storage.change_fooditems', raise_exception=True)
 def edit_item_quantity(request, item_id):
-    # Both user and admin can edit
-    return render(request,"storage/edit_food.html")
+    # Both user and admin can edit, only within their family
+    food = get_object_or_404(Food_items, id=item_id, family=request.user.profile.family)
+
+    if request.method == "POST":
+        food.quantity = request.POST.get("quantity", food.quantity)
+        food.save()
+        return redirect("all_food")
+
+    return render(request, "storage/edit_food.html", {"food": food})
+
 
 @login_required
-# home page
+# home page: show all items in the user's family
 def view_all_items(request):
-    food_items = Food_items.objects.all().order_by('exp_date')
-    other_items = Other_items.objects.all()
+    user_family = request.user.profile.family
+    food_items = Food_items.objects.filter(family=user_family).order_by('exp_date')
+    other_items = Other_items.objects.filter(family=user_family)
     return render(request, 'storage/home.html', {'foods': food_items, 'others': other_items})
 
 
 @login_required
-# see all the food
+# see all the food in user's family
 def all_food(request):
-    food_items = Food_items.objects.all().order_by('exp_date')
-    return render(request, 'storage/allFoodPage.html',{'foods': food_items})
+    user_family = request.user.profile.family
+    food_items = Food_items.objects.filter(family=user_family).order_by('exp_date')
+    return render(request, 'storage/allFoodPage.html', {'foods': food_items})
 
 
+@login_required
+# see all other items in user's family
 def all_other(request):
-    other_items = Other_items.objects.all()
-    return render(request, 'storage/allOtherPage.html',{'Others': other_items})
+    user_family = request.user.profile.family
+    other_items = Other_items.objects.filter(family=user_family)
+    return render(request, 'storage/allOtherPage.html', {'Others': other_items})
 
 
 def food_detail(request, id):
-    food = get_object_or_404(Food_items, id=id)
+    # Only show item if it belongs to user's family
+    food = get_object_or_404(Food_items, id=id, family=request.user.profile.family)
     return render(request, "storage/food_detail.html", {"food": food})
 
+
 def other_detail(request, id):
-    other = get_object_or_404(Other_items, id=id)
+    # Only show item if it belongs to user's family
+    other = get_object_or_404(Other_items, id=id, family=request.user.profile.family)
     return render(request, "storage/other_detail.html", {"other": other})
 
 
@@ -57,28 +84,26 @@ def profile_detail(request, user_id=None):
     current_user_profile = request.user.profile
 
     if user_id is None:
-        # If no user_id is provided, show the current user's profile
         profile = current_user_profile
     else:
         profile = get_object_or_404(Profile, user__id=user_id)
 
-        # Role-based access control
         if current_user_profile.role == Profile.Role.OWNER:
-            pass  # Owner can view anyone
+            pass
         elif current_user_profile.role == Profile.Role.ADMIN:
             if profile.family != current_user_profile.family:
                 return render(request, "403.html", status=403)
-        else:  # USER
+        else:
             if profile.user != request.user:
                 return render(request, "403.html", status=403)
 
     return render(request, "storage/profile.html", {"profile": profile})
 
+
 @login_required
 def edit_profile(request, id):
     profile = get_object_or_404(Profile, id=id)
 
-    # Only allow user to edit their own profile or owner/admin
     if request.user != profile.user and request.user.profile.role != Profile.Role.OWNER:
         return redirect('profile_detail', id=request.user.id)
 
@@ -93,6 +118,13 @@ def edit_profile(request, id):
 
     return render(request, "storage/edit_profile.html", {"profile": profile})
 
+
+def custom_logout(request):
+    if request.method == 'POST':
+        logout(request)
+        return render(request, 'logout_thanks.html')  # thank-you page
+    else:
+        return redirect('/')  # redirect GET requests away
 
 '''
 @login_required

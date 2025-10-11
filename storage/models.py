@@ -10,35 +10,24 @@ from django.contrib.contenttypes.models import ContentType
 
 # food_item models
 class Food_items(models.Model):
-    '''
-    image = models.ImageField(default="public_image/items/default_food.jpg", 
-                              upload_to="public_image/items/actual_items/food")
-    '''
     image = models.ImageField(
-    default="items/default_food.jpg",   
-    upload_to="items/actual_items/food" 
-)
-
+        default="items/default_food.jpg",   
+        upload_to="items/actual_items/food" 
+    )
     brand = models.CharField(blank=True, max_length=512)
     title = models.CharField(unique=False, blank=False, max_length=512)
     quantity =  models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(50)])
     exp_date = models.DateField(
         null=True, blank=True,
-        validators=[
-            MaxValueValidator(date.today() + timedelta(days=5*365))  # 5 years into the future
-        ]
+        validators=[MaxValueValidator(date.today() + timedelta(days=5*365))]
     )
     slug = models.SlugField(editable=False, unique=True)
     
-    
-    def year(self):
-        if self.exp_date:
-            return self.exp_date.year
-        return "Unknown"
-    
-    
+    # link to family
+    family = models.ForeignKey("Family", on_delete=models.CASCADE, related_name="food_items")
+
     class Meta:
-        unique_together = ('brand', 'title', 'quantity')
+        unique_together = ('brand', 'title', 'quantity', 'family')  # include family in uniqueness
 
     def save(self, *args, **kwargs):
         self.slug = slugify(f"{self.brand}-'{self.title}'-({self.quantity})")
@@ -46,9 +35,8 @@ class Food_items(models.Model):
 
     def __str__(self):
         return f"{self.title}, expired({self.exp_date})"
-    
 
-# non food items to add 
+# non-food items
 class Other_items(models.Model):
     image = models.ImageField(default="public_image/items/default_image.jpg", 
                               upload_to="public_image/items/actual_items/other")
@@ -57,10 +45,11 @@ class Other_items(models.Model):
     quantity =  models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(50)])
     slug = models.SlugField(editable=False, unique=True)
     
+    # link to family
+    family = models.ForeignKey("Family", on_delete=models.CASCADE, related_name="other_items")
 
-    
     class Meta:
-        unique_together = ('brand', 'title', 'quantity')
+        unique_together = ('brand', 'title', 'quantity', 'family')
 
     def save(self, *args, **kwargs):
         self.slug = slugify(f"{self.brand}-'{self.title}'-({self.quantity})")
@@ -68,7 +57,7 @@ class Other_items(models.Model):
 
     def __str__(self):
         return f"{self.title}"
-    
+
 
 # user/profile model
 class Profile(models.Model):
