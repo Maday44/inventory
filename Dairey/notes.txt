@@ -3,3 +3,21 @@ model changes
 - python3 manage.py makemigrations
 - python3 manage.py migrate
 and the run the server:  python3 manage.py runserver
+
+
+
+to do
+- add button D
+- edit button/ change   when click go to editor mode and edit / delete
+- hidden task bar for more stuff
+- delete button
+- user permissions
+- settings
+- recipes  D 
+
+
+other ideas
+- login, AO agents
+- seraches
+- Ai agent about the food
+- shopping deals 

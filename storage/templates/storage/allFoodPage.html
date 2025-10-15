@@ -9,7 +9,7 @@
 
 <script>
   const allFoodUrl = "{% url 'all_food' %}";
-  const addFoodUrl = "{% url 'add_food' %}";  // 👈 make sure this URL name exists in urls.py
+  const addFoodUrl = "{% url 'add_food' %}";
 </script>
 
 {% verbatim %}
@@ -36,6 +36,7 @@
     if (loading) return <p className="text-center mt-5">Loading...</p>;
 
     return (
+      
       <div className="container py-5">
         {/* Header + Add Button */}
         <div className="d-flex justify-content-between align-items-center mb-5">

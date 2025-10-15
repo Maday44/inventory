@@ -6,23 +6,38 @@ from django.contrib.auth import logout
 
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect
-from .forms import FoodForm  # make sure this exists
+from .forms import *  # make sure this exists
 
 @login_required
 @permission_required('storage.add_fooditems', raise_exception=True)
-def add_food_item(request):
+def add_food(request):
     if request.method == "POST":
         form = FoodForm(request.POST, request.FILES)
         if form.is_valid():
             food = form.save(commit=False)
-            food.family = request.user.profile.family  # assign user's family
+            food.family = request.user.profile.family 
             food.save()
-            return redirect("all_food")  # redirect to food list
+            return redirect("all_food") 
     else:
         form = FoodForm()
 
-    # Render a dedicated 'add food' template (not food_detail)
     return render(request, "storage/add_food.html", {"form": form})
+
+@login_required
+@permission_required('storage.add_otheritems', raise_exception=True)
+def add_other_items(request):
+    if request.method == "POST":
+        form = OtherForm(request.POST, request.FILES)
+        if form.is_valid():
+            other = form.save(commit=False)
+            other.family = request.user.profile.family  # assign user's family
+            other.save()
+            return redirect("all_other_items")  # redirect to food list
+    else:
+        form = OtherForm()
+
+    # Render a dedicated 'add food' template (not food_detail)
+    return render(request, "storage/add_other.html", {"form": form})
 
 
 @login_required

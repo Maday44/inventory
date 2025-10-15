@@ -8,6 +8,12 @@
   <div id="root"></div>
 </div>
 
+<script>
+  const allOtherUrl = "{% url 'all_other_items' %}";
+  const addOtherUrl = "{% url 'add_other' %}";
+</script>
+
+
 {% verbatim %}
 <script type="text/babel">
   const MAX_ITEMS = 6;
@@ -32,7 +38,23 @@
     if (loading) return <p className="text-center mt-5">Loading...</p>;
 
     return (
+
+
       <div className="container py-5">
+
+        {/* Header + Add Button */}
+        <div className="d-flex justify-content-between align-items-center mb-5">
+          <h2 className="fw-bold mb-0">
+            <a href={allOtherUrl} className="nav-link px-3 text-dark">
+              Other Items
+            </a>
+          </h2>
+          <a href={addOtherUrl} className="btn btn-success px-4 py-2 rounded-4 shadow-sm">
+            + Other Food
+          </a>
+      </div>    
+    
+
         <h2 className="text-center mb-5 fw-bold">Other Items</h2>
         <div
           className="food-grid"
@@ -95,6 +117,7 @@
           ))}
         </div>
       </div>
+
     );
   };
 
