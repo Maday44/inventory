@@ -10,7 +10,7 @@
 
 <script>
   const allOtherUrl = "{% url 'all_other_items' %}";
-  const addOtherUrl = "{% url 'add_other' %}";
+  const addOtherUrl = "{% url 'choose_add_other' %}";
 </script>
 
 
@@ -56,6 +56,23 @@
     
 
         <h2 className="text-center mb-5 fw-bold">Other Items</h2>
+
+        <div className="dropdown">
+          <button className="dropbtn">Sort by...</button>
+          <div className="dropdown-content">
+            <a href="#">Relevance</a>
+            <a href="#">Name (A To Z)</a>
+            <a href="#">Name (Z To A)</a>
+            <a href="#">Price (High To Low)</a>
+            <a href="#">Price (Low To High)</a>
+            <a href="#">Expiry Date</a>
+
+
+          </div>
+        </div>
+        <br/>
+
+
         <div
           className="food-grid"
           style={{

@@ -1,0 +1,20 @@
+
+{% extends "base.html" %}
+
+
+{% block content %}
+{% include "storage/navbar.html" %}
+
+<div class="container mt-5 text-center">
+  <h2>Choose How To Add</h2>
+  <a href="{% url 'all_other_items' %}" class="btn btn-primary m-2">Add other Manually</a>
+  <a href="{% url 'add_food' %}" class="btn btn-primary m-2">Baracode</a>
+  <a href="{% url 'add_food' %}" class="btn btn-primary m-2">Search</a>
+  <a href="{% url 'add_food' %}" class="btn btn-primary m-2">History</a>
+
+    <br>
+
+
+  <a href="{% url 'all_food' %}" class="btn btn-secondary m-2">Back</a>
+</div>
+{% endblock %}

@@ -15,11 +15,13 @@ urlpatterns = [
     path('all_food_items', views.all_food, name='all_food'),
     path('food/<slug:slug>/', views.food_detail, name='food-detail'),
     path('add_food/', views.add_food, name='add_food'),
+    path("choose_add_food/",views.choose_add_food,name="choose_add_food"),
     path('edit_food', views.edit_item_quantity, name='edit_item_quantity'),
     
     # other items
     path('all_other_items', views.all_other, name='all_other_items'),
     path('other/<slug:slug>/', views.other_detail, name='other-detail'),
+    path("choose_add_other/",views.choose_add_other,name="choose_add_other"),
     path('add_other_items/', views.add_other_items, name='add_other'),
     
     #profile

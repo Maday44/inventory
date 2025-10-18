@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+
+{% block content %}
+{% include "storage/navbar.html" %}
+<h1>{% if album %}Edit Album{% else %}Add Food{% endif %}</h1>
+
+<form method="post" enctype="multipart/form-data">{% csrf_token %}
+    {{ form|crispy }}
+
+    
+    <a href="{% url 'all_food' %}" class="btn btn-link">{% trans 'Back' %}</a>
+    <input type="submit" class="btn btn-primary" value="{% trans 'Save' %}">
+</form>
+
+{% endblock %}

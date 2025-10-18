@@ -91,6 +91,12 @@ def other_detail(request, slug):
     return render(request, "storage/other_detail.html", {"other": other})
 
 
+def choose_add_food(request):
+    return render(request, "storage/choose_add_food.html")
+
+def choose_add_other(request):
+    return render(request, "storage/choose_add_other.html")
+
 @login_required
 def profile_detail(request, user_id=None):
     """
