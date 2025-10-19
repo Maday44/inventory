@@ -7,7 +7,7 @@
 
     <!-- Edit (pen) icon button -->
     <div class="d-flex justify-content-end mb-3">
-      <a href="" 
+      <a href="{% url 'food_edit' food.slug%}" 
          class="btn btn-outline-secondary btn-sm" 
          title="Edit Food Item">
         <i class="bi bi-pencil-square"></i>
@@ -45,6 +45,11 @@
       </div>
     </div>
   </div>
+
+<div class="container mt-5 d-flex justify-content-between">
+  <a href="{% url 'all_food' %}" class="btn btn-primary custom-btn-bottom">Cancel</a>
+  <a href="{% url 'food-delete' food.slug %}" class="btn btn-danger custom-btn-bottom">Delete</a>
+</div>
 
 </main>
 {% endblock %}

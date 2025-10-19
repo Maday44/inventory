@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "storage/navbar.html" %}
+<div class="container mt-5">
+    <h3 class="lead">Do you really want to delete this item?</h3>
+    <form method="post">
+        {% csrf_token %}
+
+        {% if food %}
+            <button type="submit" class="btn btn-danger">Delete {{ food.title }}</button>
+            <a href="{% url 'food-detail' food.slug %}" class="btn btn-primary">Cancel</a>
+
+        {% elif other %}
+            <button type="submit" class="btn btn-danger">Delete {{ other.title }}</button>
+            <a href="{% url 'other-detail' other.slug %}" class="btn btn-primary">Cancel</a>
+
+        {% else %}
+            <p class="text-danger">Error: No item found to delete.</p>
+        {% endif %}
+    </form>
+</div>
+{% endblock %}

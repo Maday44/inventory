@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
@@ -5,7 +6,7 @@
 
 {% block content %}
 {% include "storage/navbar.html" %}
-<h1>{% if album %}Edit Other Items{% else %}Add Other Items{% endif %}</h1>
+<h1>{% if food %}Edit Other{% else %}Create Other Item{% endif %}</h1>
 
 <form method="post" enctype="multipart/form-data">{% csrf_token %}
     {{ form|crispy }}

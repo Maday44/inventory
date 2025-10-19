@@ -3,10 +3,11 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Food_items, Other_items, Profile
 from django.contrib.auth import logout
-
+from django.http import HttpResponseForbidden
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect
 from .forms import *  # make sure this exists
+from django.urls import reverse
 
 @login_required
 @permission_required('storage.add_fooditems', raise_exception=True)
@@ -41,20 +42,6 @@ def add_other_items(request):
 
 
 @login_required
-@permission_required('storage.change_fooditems', raise_exception=True)
-def edit_item_quantity(request, item_id):
-    # Both user and admin can edit, only within their family
-    food = get_object_or_404(Food_items, id=item_id, family=request.user.profile.family)
-
-    if request.method == "POST":
-        food.quantity = request.POST.get("quantity", food.quantity)
-        food.save()
-        return redirect("all_food")
-
-    return render(request, "storage/edit_food.html", {"food": food})
-
-
-@login_required
 # home page: show all items in the user's family
 def view_all_items(request):
     user_family = request.user.profile.family
@@ -78,13 +65,13 @@ def all_other(request):
     other_items = Other_items.objects.filter(family=user_family)
     return render(request, 'storage/allOtherPage.html', {'Others': other_items})
 
-
+@login_required
 def food_detail(request, slug):
     # Only show item if it belongs to user's family
     food = get_object_or_404(Food_items, slug=slug, family=request.user.profile.family)
     return render(request, "storage/food_detail.html", {"food": food})
 
-
+@login_required
 def other_detail(request, slug):
     # Only show item if it belongs to user's family
     other = get_object_or_404(Other_items, slug=slug, family=request.user.profile.family)
@@ -150,37 +137,81 @@ def custom_logout(request):
     else:
         return redirect('/')  # redirect GET requests away
 
-'''
 @login_required
-def album_delete(request, id):
-    album = get_object_or_404(Album, id=id)
-    profile = request.user.profile
-    if profile.role != MusicManagerUser.Role.EDITOR:
+def food_item_delete(request, slug):
+    food = get_object_or_404(Food_items, slug=slug)
+    if request.user.profile.role != Profile.Role.OWNER and Profile.Role.ADMIN:
         return HttpResponseForbidden("Access Denied")
 
     if request.method == "POST":
-        album.delete()
-        return redirect(f"{reverse('album-list')}?success=1")
+        food.delete()
+        return redirect(f"{reverse('all_food')}?success=1")
 
-    return render(request, "label_music_manager/album_confirm_delete.html", {"album": album})
+    return render(request, "storage/confirm_delete.html", {"food": food})
+
+@login_required
+def other_item_delete(request, slug):
+    other = get_object_or_404(Other_items, slug=slug)
+    if request.user.profile.role != Profile.Role.OWNER and Profile.Role.ADMIN:
+        return HttpResponseForbidden("Access Denied")
+
+    if request.method == "POST":
+        other.delete()
+        return redirect(f"{reverse('all_other_items')}?success=1")
+
+    return render(request, "storage/confirm_delete.html", {"other": other})
 
 
 @login_required
-def album_create(request):
-    profile = request.user.profile
+@permission_required('storage.change_fooditems', raise_exception=True)
+def food_edit(request, slug):
+    food = get_object_or_404(Food_items, slug=slug)
     
-    if profile.role != MusicManagerUser.Role.EDITOR:
+    if request.user.profile.role != Profile.Role.OWNER and Profile.Role.ADMIN:
         return HttpResponseForbidden("Access Denied")
 
     if request.method == "POST":
-        form = AlbumForm(request.POST, request.FILES)
+        form = FoodForm(request.POST, request.FILES, instance=food)
         if form.is_valid():
             form.save()
-            return redirect("index")
+            return redirect(f"{reverse('food-detail', args=[food.slug])}?success=1")
     else:
-        form = AlbumForm()
+        form = FoodForm(instance=food)
 
-    return render(request, "label_music_manager/album_form.html", {"form": form})
+    return render(request, "storage/add_food.html", {
+        "form": form,
+        "food": food, 
+        "is_edit": True  
+    })
+
+@login_required
+@permission_required('storage.change_otheritems', raise_exception=True)
+def other_edit(request, slug):
+    other = get_object_or_404(Other_items, slug=slug)
+    
+    if request.user.profile.role != Profile.Role.OWNER and Profile.Role.ADMIN:
+        return HttpResponseForbidden("Access Denied")
+
+    if request.method == "POST":
+        form = OtherForm(request.POST, request.FILES, instance=other)
+        if form.is_valid():
+            form.save()
+            return redirect(f"{reverse('other-detail', args=[other.slug])}?success=1")
+    else:
+        form = OtherForm(instance=other)
+
+    return render(request, "storage/add_other.html", {
+        "form": form,
+        "other": other, 
+        "is_edit": True  
+    })
+
+
+
+
+'''
+
+
 
 @login_required
 @permission_required('label_music_manager.change_album', raise_exception=True)
