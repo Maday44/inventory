@@ -10,6 +10,8 @@
 <script>
   const allFoodUrl = "{% url 'all_food' %}";
   const allOtherUrl = "{% url 'all_other_items' %}";
+  const foodItemsApiUrl = "{% url 'food-items-list' %}";
+  const otherItemsApiUrl = "{% url 'other-items-list' %}";
 </script>
 
 
@@ -23,7 +25,7 @@
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
-      axios.get("http://127.0.0.1:8000/api/Food%20items/")
+      axios.get(foodItemsApiUrl)
         .then((response) => {
           setFoodItems(response.data.results || response.data || []);
           setLoading(false);
@@ -119,7 +121,7 @@
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
-      axios.get("http://127.0.0.1:8000/api/Other%20items/")
+      axios.get(otherItemsApiUrl)
         .then((response) => {
           setOtherItems(response.data.results || response.data || []);
           setLoading(false);

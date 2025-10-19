@@ -99,6 +99,41 @@ def assign_permissions(sender, instance, created, **kwargs):
                 ]
             )
         instance.user_permissions.set(perms)
+        
+        
+        
+'''
+@receiver(post_save, sender=MusicManagerUser)
+def assign_permissions(sender, instance, created, **kwargs):
+    if created:
+        permissions = []
+        album_content_type = ContentType.objects.get_for_model(Album)
+        song_content_type = ContentType.objects.get_for_model(Song)
+
+        if instance.role == MusicManagerUser.Role.EDITOR:
+            permissions += Permission.objects.filter(
+                content_type__in=[album_content_type, song_content_type],
+                codename__in=["add_album", "change_album", "delete_album", "view_album",
+                              "add_song", "change_song", "delete_song", "view_song"]
+            )
+        elif instance.role == MusicManagerUser.Role.VIEWER:
+            permissions += Permission.objects.filter(
+                content_type=album_content_type, codename="view_album"
+            )
+            permissions += Permission.objects.filter(
+                content_type=song_content_type, codename="view_song"
+            )
+        elif instance.role == MusicManagerUser.Role.ARTIST:
+            permissions += Permission.objects.filter(
+                content_type=album_content_type, codename="view_album"
+            )
+            permissions += Permission.objects.filter(
+                content_type=song_content_type, codename="view_song"
+            )
+
+        instance.user.user_permissions.add(*permissions)
+
+'''        
 
 
 # family model

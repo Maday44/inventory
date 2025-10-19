@@ -11,6 +11,7 @@
 <script>
   const allOtherUrl = "{% url 'all_other_items' %}";
   const addOtherUrl = "{% url 'choose_add_other' %}";
+  const otherItemsApiUrl = "{% url 'other-items-list' %}";
 </script>
 
 
@@ -24,7 +25,7 @@
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
-      axios.get("http://127.0.0.1:8000/api/Other%20items/")
+      axios.get(otherItemsApiUrl)
         .then((response) => {
           setOtherItems(response.data.results || response.data || []);
           setLoading(false);
@@ -44,18 +45,6 @@
 
         {/* Header + Add Button */}
         <div className="d-flex justify-content-between align-items-center mb-5">
-          <h2 className="fw-bold mb-0">
-            <a href={allOtherUrl} className="nav-link px-3 text-dark">
-              Other Items
-            </a>
-          </h2>
-          <a href={addOtherUrl} className="btn btn-success px-4 py-2 rounded-4 shadow-sm">
-            + Other Food
-          </a>
-      </div>    
-    
-
-        <h2 className="text-center mb-5 fw-bold">Other Items</h2>
 
         <div className="dropdown">
           <button className="dropbtn">Sort by...</button>
@@ -66,12 +55,18 @@
             <a href="#">Price (High To Low)</a>
             <a href="#">Price (Low To High)</a>
             <a href="#">Expiry Date</a>
-
-
           </div>
         </div>
-        <br/>
 
+        <h2 className="text-center mb-5 fw-bold">Other Items</h2>
+
+          <a href={addOtherUrl} className="btn btn-success px-4 py-2 rounded-4 shadow-sm">
+            + Other Food
+          </a>
+      </div>    
+    
+
+        <br/>
 
         <div
           className="food-grid"

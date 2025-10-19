@@ -7,8 +7,8 @@ from django.conf.urls.static import static
 
 
 router = DefaultRouter()
-router.register(r'Food items', FoodViewSet, basename='Food')
-router.register(r'Other items', OtherViewSet, basename='Other Items')
+router.register(r'Food items', FoodViewSet, basename='food-items')
+router.register(r'Other items', OtherViewSet, basename='other-items')
 router.register(r'Users', UserViewSet, basename='Users')
 router.register(r'Families', FamViewSet, basename='Families')
 
