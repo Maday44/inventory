@@ -207,12 +207,38 @@ def other_edit(request, slug):
     })
 
 
+    
+def all_members(request):
+    family = request.user.profile.family 
+    members = family.members.select_related("user").all() 
+    return render(request, "storage/members.html", {"family": family, "members": members})
+
+def member_detail(request):
+    pass
 
 
+@login_required
+def edit_member_view(request, member_id):
+    member = get_object_or_404(Profile, id=member_id, family=request.user.profile.family)
+
+    if request.method == "POST":
+        new_role = request.POST.get("role")
+        if request.user.profile.role in ["owner", "admin"]:  # only admins/owners can edit
+            member.role = new_role
+            member.save()
+        return redirect("family_members")
+
+    return render(request, "storage/edit_member.html", {"member": member})
+'''
+@login_required
+# see all the food in user's family
+def all_food(request):
+    user_family = request.user.profile.family
+    food_items = Food_items.objects.filter(family=user_family).order_by('exp_date')
+    return render(request, 'storage/allFoodPage.html', {'foods': food_items})
 '''
 
-
-
+'''
 @login_required
 @permission_required('label_music_manager.change_album', raise_exception=True)
 def album_edit(request, id):

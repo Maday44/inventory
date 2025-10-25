@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+{% include "storage/navbar.html" %}
+
+<div class="container mt-4">
+  <h2>{{ family.name }} — Members</h2>
+  <div class="row">
+    {% for member in members %}
+      <div class="col-md-4 mb-3">
+        <div class="card text-center shadow-sm">
+          <img src="{{ member.profile_pic.url }}" alt="{{ member.display_name }}" class="rounded-circle mx-auto mt-3" width="100" height="100">
+          <div class="card-body">
+            <h5 class="card-title">{{ member.display_name }}</h5>
+            <p class="card-text">Role: <strong>{{ member.get_role_display }}</strong></p>
+            
+            {% if user.profile.role in "owner admin" %}
+              <a href="{% url 'edit_member' member.id %}" class="btn btn-sm btn-outline-primary">Edit Role</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

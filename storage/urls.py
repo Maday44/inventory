@@ -32,6 +32,10 @@ urlpatterns = [
     path("profile/<int:user_id>/", views.profile_detail, name="profile_detail"), 
     path('profile/<int:id>/edit/', views.edit_profile, name='edit_profile'),
     
+    #memebers
+    path("family/members/", views.all_members, name="members"),
+    path("family/edit/<int:member_id>/", views.edit_member_view, name="edit_member"),
+    
     path('accounts/logout/', views.custom_logout, name='logout'),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

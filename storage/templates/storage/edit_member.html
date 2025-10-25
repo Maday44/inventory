@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "storage/navbar.html" %}
+<div class="container mt-4">
+  <h3>Edit Role — {{ member.display_name }}</h3>
+
+  <form method="post">
+    {% csrf_token %}
+    <label for="role">Select Role:</label>
+    <select name="role" id="role" class="form-select">
+      {% for value, label in member.Role.choices %}
+        <option value="{{ value }}" {% if member.role == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
+    <a href="{% url 'members' %}" class="btn btn-link">Back</a>
+  </form>
+</div>
+{% endblock %}

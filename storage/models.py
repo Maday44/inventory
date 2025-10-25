@@ -21,7 +21,9 @@ class Food_items(models.Model):
         null=True, blank=True,
         validators=[MaxValueValidator(date.today() + timedelta(days=5*365))]
     )
+    #catorigies = models.CharField(blank=True, max_length=512)
     slug = models.SlugField(editable=False, unique=True)
+    
     
     # link to family
     family = models.ForeignKey("Family", on_delete=models.CASCADE, related_name="food_items")
@@ -43,6 +45,7 @@ class Other_items(models.Model):
     brand = models.CharField(blank=True, max_length=512)
     title = models.CharField(unique=False, blank=False, max_length=512)
     quantity =  models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(50)])
+    #catorigies = models.CharField(blank=True, max_length=512)
     slug = models.SlugField(editable=False, unique=True)
     
     # link to family
