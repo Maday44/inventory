@@ -19,6 +19,10 @@ urlpatterns = [
     path('food/<slug:slug>/delete', views.food_item_delete, name='food-delete'),
     path('food/<slug:slug>/edit/', views.food_edit, name='food_edit'),
     
+    #path('categories/reset/', views.reset_default_categories, name='reset_categories'),
+    path("categories/", views.category_list, name="category"),
+    path("categories/delete/<int:pk>/", views.delete_category, name="delete_category"),
+    
     # other items
     path('all_other_items', views.all_other, name='all_other_items'),
     path('other/<slug:slug>/', views.other_detail, name='other-detail'),

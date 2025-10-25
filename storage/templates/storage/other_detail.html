@@ -37,7 +37,8 @@
               <h5 class="card-title">{{ other.brand }}</h5>
               <h5 class="card-title">{{ other.title }}</h5>
               <p class="card-text">
-                Quantity: {{ other.quantity }}<br>
+                Category: {{ other.category }}<br>
+                Quantity: {{ other.quantity }}
               </p>
             </div>
           </div>
@@ -47,7 +48,7 @@
   </div>
 
 <div class="container mt-5 d-flex justify-content-between">
-  <a href="{% url 'all_other_items' %}" class="btn btn-primary custom-btn-bottom">Cancel</a>
+  <a href="{% url 'all_other_items' %}" class="btn btn-primary custom-btn-bottom">Back</a>
   <a href="{% url 'other-delete' other.slug %}" class="btn btn-danger custom-btn-bottom">Delete</a>
 </div>  
 

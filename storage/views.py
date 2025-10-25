@@ -6,8 +6,10 @@ from django.contrib.auth import logout
 from django.http import HttpResponseForbidden
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect
-from .forms import *  # make sure this exists
+from .forms import *
 from django.urls import reverse
+from django.db.models import Q
+from django.contrib import messages
 
 @login_required
 @permission_required('storage.add_fooditems', raise_exception=True)
@@ -229,6 +231,38 @@ def edit_member_view(request, member_id):
         return redirect("family_members")
 
     return render(request, "storage/edit_member.html", {"member": member})
+
+@login_required
+def category_list(request):
+    family = request.user.profile.family
+    categories = Category.objects.filter(Q(is_default=True) | Q(family=family))
+
+    if request.method == "POST":
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data["name"]
+            # Check if category already exists for this family
+            if not Category.objects.filter(name=name, family=family).exists():
+                Category.objects.create(name=name, family=family, is_default=False)
+            return redirect("category")
+    else:
+        form = CategoryForm()
+
+    context = {
+        "categories": categories,
+        "form": form,
+    }
+    return render(request, "storage/category.html", context)
+
+def delete_category(request, pk):
+    category = get_object_or_404(Category, pk=pk, family=request.user.profile.family)
+    if category.is_default:
+        messages.error(request, "Default categories cannot be deleted.")
+    else:
+        category.delete()
+        messages.success(request, f"Category '{category.name}' deleted successfully.")
+    return redirect("category")
+
 '''
 @login_required
 # see all the food in user's family

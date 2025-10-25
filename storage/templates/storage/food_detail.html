@@ -36,6 +36,7 @@
               <h5 class="card-title">{{ food.brand }}</h5>
               <h5 class="card-title">{{ food.title }}</h5>
               <p class="card-text">
+                Category: {{ food.category }}<br>
                 Quantity: {{ food.quantity }}<br>
                 Expiry Date: {{ food.exp_date }}
               </p>
@@ -47,7 +48,7 @@
   </div>
 
 <div class="container mt-5 d-flex justify-content-between">
-  <a href="{% url 'all_food' %}" class="btn btn-primary custom-btn-bottom">Cancel</a>
+  <a href="{% url 'all_food' %}" class="btn btn-primary custom-btn-bottom">Back</a>
   <a href="{% url 'food-delete' food.slug %}" class="btn btn-danger custom-btn-bottom">Delete</a>
 </div>
 

@@ -2,81 +2,134 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from datetime import date, timedelta
 from django.utils.text import slugify
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
 from django.db.models.signals import post_save
-from django.dispatch import receiver 
-from django.contrib.auth.models import Permission, AbstractUser
+from django.dispatch import receiver
 from django.contrib.contenttypes.models import ContentType
 
-# food_item models
+
+class Category(models.Model):
+    DEFAULT_CATEGORIES = [
+        "Fruits",
+        "Vegetables",
+        "Meat & Poultry",
+        "Dairy",
+        "Snacks",
+        "Beverages",
+        "Canned Goods",
+        "Frozen Foods",
+        "Condiments",
+        "Cleaning Supplies",
+        "Toiletries",
+        "Stationery",
+        "Electronics",
+        "Clothing",
+        "Miscellaneous"
+    ]
+
+    name = models.CharField(max_length=255, unique=False)
+    is_default = models.BooleanField(default=False)
+    family = models.ForeignKey(
+        "Family", on_delete=models.CASCADE, null=True, blank=True, related_name="categories"
+    ) 
+
+    class Meta:
+        unique_together = ('name', 'family')
+
+    def __str__(self):
+        return f"{self.name} {'(default)' if self.is_default else ''}"
+
+    @classmethod
+    def create_default_categories(cls):
+        """Create default global categories (only once)."""
+        for cat in cls.DEFAULT_CATEGORIES:
+            cls.objects.get_or_create(name=cat, is_default=True, family=None)
+
+
 class Food_items(models.Model):
     image = models.ImageField(
-        default="items/default_food.jpg",   
-        upload_to="items/actual_items/food" 
+        default="items/default_food.jpg",
+        upload_to="items/actual_items/food"
     )
     brand = models.CharField(blank=True, max_length=512)
-    title = models.CharField(unique=False, blank=False, max_length=512)
-    quantity =  models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(50)])
+    title = models.CharField(blank=False, max_length=512)
+    quantity = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(50)])
     exp_date = models.DateField(
         null=True, blank=True,
-        validators=[MaxValueValidator(date.today() + timedelta(days=5*365))]
+        validators=[MaxValueValidator(date.today() + timedelta(days=5 * 365))]
     )
-    #catorigies = models.CharField(blank=True, max_length=512)
     slug = models.SlugField(editable=False, unique=True)
     
-    
-    # link to family
+    category = models.ForeignKey(
+        Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="food_items"
+    )
+
     family = models.ForeignKey("Family", on_delete=models.CASCADE, related_name="food_items")
 
     class Meta:
-        unique_together = ('brand', 'title', 'quantity', 'family')  # include family in uniqueness
+        unique_together = ('brand', 'title', 'quantity', 'family')
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(f"{self.brand}-'{self.title}'-({self.quantity})")
+        self.slug = slugify(f"{self.brand}-{self.title}-{self.quantity}")
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.title}, expired({self.exp_date})"
+        return f"{self.title} ({self.category}) - exp-date({self.exp_date})"
 
-# non-food items
+
 class Other_items(models.Model):
-    image = models.ImageField(default="public_image/items/default_image.jpg", 
-                              upload_to="public_image/items/actual_items/other")
+    image = models.ImageField(
+        default="public_image/items/default_image.jpg",
+        upload_to="public_image/items/actual_items/other"
+    )
     brand = models.CharField(blank=True, max_length=512)
-    title = models.CharField(unique=False, blank=False, max_length=512)
-    quantity =  models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(50)])
-    #catorigies = models.CharField(blank=True, max_length=512)
+    title = models.CharField(blank=False, max_length=512)
+    quantity = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(50)])
     slug = models.SlugField(editable=False, unique=True)
-    
-    # link to family
+
+    category = models.ForeignKey(
+        Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="other_items"
+    )
+
     family = models.ForeignKey("Family", on_delete=models.CASCADE, related_name="other_items")
 
     class Meta:
         unique_together = ('brand', 'title', 'quantity', 'family')
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(f"{self.brand}-'{self.title}'-({self.quantity})")
+        self.slug = slugify(f"{self.brand}-{self.title}-{self.quantity}")
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.title}"
+        return f"{self.title} ({self.category})"
 
 
-# user/profile model
+class Family(models.Model):
+    name = models.CharField(blank=False, max_length=512)
+
+    def __str__(self):
+        return f"{self.name}, has {self.members.count()} members"
+
+
 class Profile(models.Model):
     class Role(models.TextChoices):
-        OWNER = "owner","Owner"
+        OWNER = "owner", "Owner"
         ADMIN = "admin", "Admin"
         USER = "user", "User"
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
-    profile_pic = models.ImageField(default="profile_pics/default_profile_pic.jpg", upload_to="profile_pic/personal_images")
+    profile_pic = models.ImageField(
+        default="profile_pics/default_profile_pic.jpg",
+        upload_to="profile_pic/personal_images"
+    )
     family = models.ForeignKey("Family", on_delete=models.CASCADE, related_name="members")
     display_name = models.CharField(max_length=512)
     role = models.CharField(max_length=10, choices=Role.choices)
 
     def __str__(self):
         return f"{self.display_name} ({self.role})"
+
+
 
 @receiver(post_save, sender=User)
 def assign_permissions(sender, instance, created, **kwargs):
@@ -102,46 +155,3 @@ def assign_permissions(sender, instance, created, **kwargs):
                 ]
             )
         instance.user_permissions.set(perms)
-        
-        
-        
-'''
-@receiver(post_save, sender=MusicManagerUser)
-def assign_permissions(sender, instance, created, **kwargs):
-    if created:
-        permissions = []
-        album_content_type = ContentType.objects.get_for_model(Album)
-        song_content_type = ContentType.objects.get_for_model(Song)
-
-        if instance.role == MusicManagerUser.Role.EDITOR:
-            permissions += Permission.objects.filter(
-                content_type__in=[album_content_type, song_content_type],
-                codename__in=["add_album", "change_album", "delete_album", "view_album",
-                              "add_song", "change_song", "delete_song", "view_song"]
-            )
-        elif instance.role == MusicManagerUser.Role.VIEWER:
-            permissions += Permission.objects.filter(
-                content_type=album_content_type, codename="view_album"
-            )
-            permissions += Permission.objects.filter(
-                content_type=song_content_type, codename="view_song"
-            )
-        elif instance.role == MusicManagerUser.Role.ARTIST:
-            permissions += Permission.objects.filter(
-                content_type=album_content_type, codename="view_album"
-            )
-            permissions += Permission.objects.filter(
-                content_type=song_content_type, codename="view_song"
-            )
-
-        instance.user.user_permissions.add(*permissions)
-
-'''        
-
-
-# family model
-class Family(models.Model):
-    name = models.CharField(unique=False, blank=False, max_length=512)
-    
-    def __str__(self):
-        return f"{self.name}, has {self.members.count()} members"

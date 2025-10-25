@@ -1,19 +1,46 @@
-
 {% extends "base.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
 
-
 {% block content %}
 {% include "storage/navbar.html" %}
-<h1>{% if food %}Edit Food{% else %}Create Food Item{% endif %}</h1>
+<div class="container mt-4">
+  <h1>
+    {% if food %}
+      Edit Food
+    {% else %}
+      Create Food Item
+    {% endif %}
+  </h1>
 
-<form method="post" enctype="multipart/form-data">{% csrf_token %}
-    {{ form|crispy }}
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <label for="{{ form.category.id_for_label }}" class="form-label mb-0">
+            </label>
+            <a href="{% url 'category' %}" target="_blank" class="btn btn-sm btn-outline-primary">
+      + Add New Category
+            </a>
+        </div>
+        <div class="mt-2">
+        
+    {{ form.category|as_crispy_field }}
+        </div>
+    </div>
 
     
+
+    {# Render all remaining fields except 'category' automatically #}
+    {% for field in form %}
+      {% if field.name != 'category' %}
+        {{ field|as_crispy_field }}
+      {% endif %}
+    {% endfor %}
+
     <a href="{% url 'all_food' %}" class="btn btn-link">{% trans 'Back' %}</a>
     <input type="submit" class="btn btn-primary" value="{% trans 'Save' %}">
-</form>
-
+  </form>
+</div>
 {% endblock %}

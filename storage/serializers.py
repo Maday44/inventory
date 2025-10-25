@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Food_items, Other_items, User, Family
+from .models import Food_items, Other_items, User, Family, Category
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -25,3 +25,11 @@ class OtherSerializer(serializers.ModelSerializer):
         model = Other_items
         fields = '__all__'
     
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ["id", "name"]
+
+    def create(self, validated_data):
+        validated_data["family"] = self.context["request"].user.profile.family
+        return super().create(validated_data)

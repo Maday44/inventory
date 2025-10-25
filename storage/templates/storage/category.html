@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+{% include "storage/navbar.html" %}
+<div class="container mt-4">
+  <h2>Categories</h2>
+  <p>Below are all available categories (including your family's custom ones).</p>
+
+  <ul class="list-group mb-4">
+    {% for category in categories %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span>{{ category.name }}</span>
+
+        <div class="d-flex align-items-center">
+          {% if not category.is_default %}
+            <span class="badge bg-success me-2">Custom</span>
+            <form method="post" action="{% url 'delete_category' category.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-danger" title="Delete category" onclick="return confirm('Are you sure you want to delete this category?')">
+                X
+              </button>
+            </form>
+          {% else %}
+            <span class="badge bg-secondary">Default</span>
+          {% endif %}
+        </div>
+      </li>
+    {% empty %}
+      <li class="list-group-item">No categories yet.</li>
+    {% endfor %}
+  </ul>
+
+  <h4>Add a New Category</h4>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary mt-2">Add Category</button>
+  </form>
+  <a href="{% url 'view_all_items' %}" class="btn btn-link">{% trans 'Back' %}</a>
+</div>
+{% endblock %}
