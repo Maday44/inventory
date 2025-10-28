@@ -15,7 +15,7 @@
 
 {% verbatim %}
 <script type="text/babel">
-  const MAX_ITEMS = 6;
+  
 
   // Food Items Component
   const FoodItemsPad = () => {
@@ -78,7 +78,7 @@
             gap: "20px"
           }}
         >
-          {foodItems.slice(0, MAX_ITEMS).map((item) => (
+          {foodItems.slice().map((item) => (
             <a
               key={item.slug}
               href={`/food/${item.slug}/`}

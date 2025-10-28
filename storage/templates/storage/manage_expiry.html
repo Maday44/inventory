@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "storage/navbar.html" %}
+
+<div class="container mt-4">
+  <h2>Manage Expiry for {{ item.title }}</h2>
+
+  {% if expiry %}
+    <p>Current expiry: <strong>{{ expiry.exp_date }}</strong></p>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="btn btn-primary">Update Expiry</button>
+    </form>
+    <form method="post" action="{% url 'delete_expiry' expiry.id %}">
+      {% csrf_token %}
+      <button class="btn btn-danger mt-2">Remove Expiry</button>
+    </form>
+  {% else %}
+    <p>This item has no expiry date set.</p>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="btn btn-success">Add Expiry</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

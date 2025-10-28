@@ -10,6 +10,7 @@ from .forms import *
 from django.urls import reverse
 from django.db.models import Q
 from django.contrib import messages
+from django.utils import timezone
 
 @login_required
 @permission_required('storage.add_fooditems', raise_exception=True)
@@ -47,7 +48,7 @@ def add_other_items(request):
 # home page: show all items in the user's family
 def view_all_items(request):
     user_family = request.user.profile.family
-    food_items = Food_items.objects.filter(family=user_family).order_by('exp_date')
+    food_items = Food_items.objects.filter(family=user_family,is_active=True,exp_date__gte=timezone.now().date()).order_by('exp_date')
     other_items = Other_items.objects.filter(family=user_family)
     return render(request, 'storage/home.html', {'foods': food_items, 'others': other_items})
 
@@ -56,8 +57,13 @@ def view_all_items(request):
 # see all the food in user's family
 def all_food(request):
     user_family = request.user.profile.family
-    food_items = Food_items.objects.filter(family=user_family).order_by('exp_date')
+    food_items = Food_items.objects.filter(
+        family=user_family,
+        is_active=True
+    ).order_by('exp_date')
     return render(request, 'storage/allFoodPage.html', {'foods': food_items})
+
+
 
 
 @login_required
@@ -263,39 +269,59 @@ def delete_category(request, pk):
         messages.success(request, f"Category '{category.name}' deleted successfully.")
     return redirect("category")
 
-'''
-@login_required
-# see all the food in user's family
-def all_food(request):
-    user_family = request.user.profile.family
-    food_items = Food_items.objects.filter(family=user_family).order_by('exp_date')
-    return render(request, 'storage/allFoodPage.html', {'foods': food_items})
-'''
-
-'''
-@login_required
-@permission_required('label_music_manager.change_album', raise_exception=True)
-def album_edit(request, id):
-    album = get_object_or_404(Album, id=id)
-    profile = request.user.profile
+def manage_expiry(request, item_id):
+    item = get_object_or_404(Food_items, id=item_id, family=request.user.profile.family)
+    expiry = item.expiry_records.filter(is_active=True).first()
     
-    if profile.role != MusicManagerUser.Role.EDITOR and album.artist != profile.display_name:
-        return HttpResponseForbidden("Access Denied")
-
     if request.method == "POST":
-        form = AlbumForm(request.POST, request.FILES, instance=album)
+        form = ItemExpiryForm(request.POST, instance=expiry)
         if form.is_valid():
-            form.save()
-            return redirect(f"{reverse('album-detail', args=[album.id])}?success=1")
+            expiry = form.save(commit=False)
+            expiry.item = item
+            expiry.is_active = True
+            expiry.save()
+            messages.success(request, "Expiry date updated successfully!")
+            return redirect("manage_expiry", item_id=item.id)
     else:
-        form = AlbumForm(instance=album)
+        form = ItemExpiryForm(instance=expiry)
 
-    return render(request, "label_music_manager/album_form.html", {
-        "form": form,
-        "album": album, 
-        "is_edit": True  
-    })
+    return render(request, "storgae/manage_expiry.html", {"item": item, "form": form, "expiry": expiry})
+
+def delete_expiry(request, pk):
+    expiry = get_object_or_404(ItemExpiry, pk=pk, item__family=request.user.profile.family)
+    expiry.is_active = False
+    expiry.save()
+    messages.success(request, "Expiry tracking removed for this item.")
+    return redirect("manage_expiry", item_id=expiry.item.id)
 
 
+def delete_item(request, pk):
+    item = get_object_or_404(Food_items, pk=pk, family=request.user.profile.family)
+    item.is_active = False
+    item.deleted_on = timezone.now()
+    item.delete()
+    messages.info(request, f"{item.title} has now been deleted")
+    return redirect("all_food")
 
-'''
+
+def restore_item(request, pk):
+    item = get_object_or_404(Food_items, pk=pk, family=request.user.profile.family, is_active=False)
+    item.is_active = True
+    item.deleted_on = None
+    item.restored = True
+    item.save()
+    messages.success(request, f"{item.title} restored successfully.")
+    return redirect("all_food")
+
+
+def expired_items(request):
+    user_family = request.user.profile.family
+    today = timezone.now().date()
+
+    expired_foods = Food_items.objects.filter(
+        family=user_family,
+        exp_date__lt=today,
+        is_active=False  
+    ).order_by('exp_date')
+
+    return render(request, "storage/expired_items.html", {"foods": expired_foods})

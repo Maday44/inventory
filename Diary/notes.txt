@@ -19,6 +19,21 @@ other ideas
 - seraches
 - Ai agent about the food
 - shopping deals 
+- categories default have the their own default images for custom categories just 
+be standard default images 
 
 
+- run code minutes for now  for exp
+ python manage.py qcluster
+ runs checks for exp items every 1 minutes
 
+ python manage.py shell
+ from django_q.models import Schedule
+
+Schedule.objects.create(
+    name='check_expired_items',
+    func='storage.tasks.check_expired_items',
+    schedule_type=Schedule.MINUTES,
+    minutes=5  # or however often you want it to run
+)
+ Then run: python manage.py qcluster

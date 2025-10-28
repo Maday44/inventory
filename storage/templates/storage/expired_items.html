@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "storage/navbar.html" %}
+<h2>Expired Items</h2>
+
+{% if foods %}
+  <ul>
+    {% for food in foods %}
+      <li>
+        {{ food.title }} - Expired on {{ food.exp_date }}
+        <a href="{% url 'restore_item' food.id %}" class="btn btn-success btn-sm">Restore</a>
+        <a href="{% url 'delete_item' food.id %}" class="btn btn-sm btn-danger">Delete</a>
+
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No expired items.</p>
+{% endif %}
+{% endblock %}

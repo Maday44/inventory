@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'crispy_forms',
     'crispy_bootstrap5',
+    'django_q',
 ]
 
 REST_FRAMEWORK = {
@@ -164,3 +165,21 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
+Q_CLUSTER = {
+    'name': 'home_inventory',
+    'workers': 4,
+    'recycle': 500,
+    'timeout': 60,
+    'retry': 120,
+    'queue_limit': 50,
+    'bulk': 10,
+    'orm': 'default',
+    'schedule': [
+        {
+            'func': 'storage.tasks.check_expired_items',
+            'schedule_type': 'D',
+            'minutes': 0,
+        },
+    ]
+}

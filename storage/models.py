@@ -6,6 +6,7 @@ from django.contrib.auth.models import User, Permission
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.contenttypes.models import ContentType
+from django.utils.timezone import now
 
 
 class Category(models.Model):
@@ -65,6 +66,10 @@ class Food_items(models.Model):
     )
 
     family = models.ForeignKey("Family", on_delete=models.CASCADE, related_name="food_items")
+    is_active = models.BooleanField(default=True)
+    deleted_on = models.DateTimeField(null=True, blank=True)
+    restored = models.BooleanField(default=False)
+
 
     class Meta:
         unique_together = ('brand', 'title', 'quantity', 'family')
@@ -92,6 +97,9 @@ class Other_items(models.Model):
     )
 
     family = models.ForeignKey("Family", on_delete=models.CASCADE, related_name="other_items")
+    is_active = models.BooleanField(default=True)
+    deleted_on = models.DateTimeField(null=True, blank=True)
+
 
     class Meta:
         unique_together = ('brand', 'title', 'quantity', 'family')
@@ -129,7 +137,20 @@ class Profile(models.Model):
     def __str__(self):
         return f"{self.display_name} ({self.role})"
 
+class ItemExpiry(models.Model):
+    item = models.ForeignKey("Food_items", on_delete=models.CASCADE, related_name="expiry_records")
+    exp_date = models.DateField(null=True, blank=True)
+    added_on = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)  # allows re-adding or reactivating expiry tracking
 
+    def is_expired(self):
+        return self.exp_date and self.exp_date < date.today()
+
+    def days_until_expiry(self):
+        return (self.exp_date - date.today()).days if self.exp_date else None
+
+    def __str__(self):
+        return f"{self.item.title} expires {self.exp_date}"
 
 @receiver(post_save, sender=User)
 def assign_permissions(sender, instance, created, **kwargs):

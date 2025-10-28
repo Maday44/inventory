@@ -6,9 +6,7 @@ from django.contrib import admin
 
 # this will be my main URL 
 urlpatterns = [
-    # Your app-specific views
-    # Example: path('', views.home, name='home'),
-    #path('food-items/', views.view_all_items, name='view_all_items'),
+
     path('', views.view_all_items, name='view_all_items'),
     
     #food
@@ -19,9 +17,19 @@ urlpatterns = [
     path('food/<slug:slug>/delete', views.food_item_delete, name='food-delete'),
     path('food/<slug:slug>/edit/', views.food_edit, name='food_edit'),
     
-    #path('categories/reset/', views.reset_default_categories, name='reset_categories'),
+    #cateegories
     path("categories/", views.category_list, name="category"),
-    path("categories/delete/<int:pk>/", views.delete_category, name="delete_category"),
+    
+    #exp
+    path("expiry/manage/<int:item_id>/", views.manage_expiry, name="manage_expiry"),
+    path("expiry/delete/<int:pk>/", views.delete_expiry, name="delete_expiry"),
+
+    # Item archiving/restoring
+    path("item/delete/<int:pk>/", views.delete_item, name="delete_item"),
+    path("item/restore/<int:pk>/", views.restore_item, name="restore_item"),
+
+    # Expired items page
+    path("items/expired/", views.expired_items, name="expired_items"),
     
     # other items
     path('all_other_items', views.all_other, name='all_other_items'),

@@ -37,3 +37,11 @@ class CategoryForm(forms.ModelForm):
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Enter category name"}),
         }
+
+class ItemExpiryForm(forms.ModelForm):
+    class Meta:
+        model = ItemExpiry
+        fields = ["exp_date"]
+        widgets = {
+            "exp_date": forms.DateInput(attrs={"type": "date"})
+        }
