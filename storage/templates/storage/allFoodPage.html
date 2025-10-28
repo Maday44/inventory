@@ -112,23 +112,34 @@
                     borderTopRightRadius: "1rem"
                   }}
                 />
-                <div
-                  className="card-body d-flex flex-column justify-content-between"
-                  style={{ flex: 1 }}
-                >
-                  <div>
-                    <h5 className="card-title fw-semibold mb-2">{item.title}</h5>
-                    <p className="card-text text-muted mb-1">
-                      <strong>Brand:</strong> {item.brand || "N/A"}
-                    </p>
-                    <p className="card-text text-muted mb-1">
-                      <strong>Quantity:</strong> {item.quantity}
-                    </p>
-                    <p className="card-text text-muted mb-0">
-                      <strong>Expires:</strong> {item.exp_date || "Unknown"}
-                    </p>
-                  </div>
+                <div className="card-body d-flex flex-column justify-content-between" style={{ flex: 1 }}>
+                <div>
+                  <h5 className="card-title fw-semibold mb-2">{item.title}</h5>
+                  <p className="card-text text-muted mb-1">
+                    <strong>Brand:</strong> {item.brand || "N/A"}
+                  </p>
+                  <p className="card-text text-muted mb-1">
+                    <strong>Quantity:</strong> {item.quantity}
+                  </p>
+
+                  {/* Expiry date with color change */}
+                  {(() => {
+                    const today = new Date();
+                    const expDate = new Date(item.exp_date);
+                    const isExpired = expDate < today;
+
+                    return (
+                      <p
+                        className="card-text mb-0"
+                        style={{ color: isExpired ? "red" : "#6c757d" }}
+                      >
+                        <strong>Expires:</strong>{" "}
+                        {item.exp_date ? expDate.toLocaleDateString() : "Unknown"} 
+                      </p>
+                    );
+                  })()}
                 </div>
+              </div>
               </div>
             </a>
           ))}

@@ -10,7 +10,7 @@ to do
 
 - edit button
 - members
-- drop down nav
+- drop down nav D
 - api starting
 
 
@@ -37,3 +37,5 @@ Schedule.objects.create(
     minutes=5  # or however often you want it to run
 )
  Then run: python manage.py qcluster
+
+when pushing ignore dblite as data added by meeee
