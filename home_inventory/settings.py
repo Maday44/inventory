@@ -183,3 +183,6 @@ Q_CLUSTER = {
         },
     ]
 }
+
+ALLOWED_HOSTS = ['.onrender.com', 'localhost']
+STATIC_ROOT = BASE_DIR / 'staticfiles'

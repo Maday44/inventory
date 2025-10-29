@@ -39,3 +39,4 @@ Schedule.objects.create(
  Then run: python manage.py qcluster
 
 when pushing ignore dblite as data added by meeee
+when done run pip freeze > requirements.txt at root
