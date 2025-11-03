@@ -40,3 +40,5 @@ Schedule.objects.create(
 
 when pushing ignore dblite as data added by meeee
 when done run pip freeze > requirements.txt at root
+try to deplay render again
+it just kept failing: https://dashboard.render.com/web/srv-d415i1ur433s73b5ood0/deploys/dep-d4162ibe5dus738m4jk0

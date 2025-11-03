@@ -42,7 +42,37 @@ class Category(models.Model):
 
     @classmethod
     def create_default_categories(cls):
-        """Create default global categories (only once)."""
+        for cat in cls.DEFAULT_CATEGORIES:
+            cls.objects.get_or_create(name=cat, is_default=True, family=None)
+
+class ShoppingCategory(models.Model):
+    DEFAULT_SHOP_CATEGORIES = [
+        "Weekly Food Shop",
+        "Bits and Bobs",
+        "Christmas",
+        "Easter",
+        "DIY",
+        "Hangout",
+        "Party",
+        "Birthdays",
+        "Gifts",
+        "Clothes"
+    ]
+
+    name = models.CharField(max_length=255, unique=False)
+    is_default = models.BooleanField(default=False)
+    family = models.ForeignKey(
+        "Family", on_delete=models.CASCADE, null=True, blank=True, related_name="shopping_categories"
+    ) 
+
+    class Meta:
+        unique_together = ('name', 'family')
+
+    def __str__(self):
+        return f"{self.name} {'(default)' if self.is_default else ''}"
+
+    @classmethod
+    def create_default_categories(cls):
         for cat in cls.DEFAULT_CATEGORIES:
             cls.objects.get_or_create(name=cat, is_default=True, family=None)
 
@@ -152,6 +182,30 @@ class ItemExpiry(models.Model):
     def __str__(self):
         return f"{self.item.title} expires {self.exp_date}"
 
+class Shopping_List(models.Model):
+    title = models.CharField(blank=False, max_length=512)
+    category = models.ForeignKey(
+        ShoppingCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name="shopping_List"
+    )
+    family =  models.ForeignKey("Family", on_delete=models.CASCADE, related_name="shopping_lists")
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shopping_lists')
+    created = models.DateTimeField(auto_now_add=True)
+    updated =  models.DateTimeField(auto_now=True)
+    budget = models.DecimalField(max_digits=10, decimal_places=2)
+    completed = models.BooleanField(default=False)
+    
+    
+class Shop_items(models.Model):
+    shopping_list = models.ForeignKey(Shopping_List, on_delete=models.CASCADE, related_name='items')
+    food_item = models.ForeignKey(Food_items, on_delete=models.SET_NULL, null=True, blank=True, related_name='entries')
+    other_item = models.ForeignKey(Other_items, on_delete=models.SET_NULL, null=True, blank=True, related_name='entries')
+    name = models.CharField(blank=False, max_length=512)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='items')
+    quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=10,decimal_places=2)
+    purchased = models.BooleanField(default=False)
+    
+    
 @receiver(post_save, sender=User)
 def assign_permissions(sender, instance, created, **kwargs):
     if created:

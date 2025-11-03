@@ -1,10 +1,12 @@
 from django.contrib import admin
-from .models import Food_items, Other_items, Family, Profile,Category
+from .models import *
 
 admin.site.register(Food_items)
 admin.site.register(Other_items)
 admin.site.register(Profile)
 admin.site.register(Category)
+admin.site.register(Shop_items)
+admin.site.register(Shopping_List)
 
 class ProfileInline(admin.TabularInline):
     model = Profile

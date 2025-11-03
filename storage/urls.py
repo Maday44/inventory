@@ -21,7 +21,7 @@ urlpatterns = [
     path("categories/", views.category_list, name="category"),
     
     #exp
-    path("expiry/manage/<int:item_id>/", views.manage_expiry, name="manage_expiry"),
+    #path("expiry/manage/<int:item_id>/", views.manage_expiry, name="manage_expiry"),
     path("expiry/delete/<int:pk>/", views.delete_expiry, name="delete_expiry"),
 
     # Item archiving/restoring

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Food_items, Other_items, User, Family, Category
+from .models import *
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -33,3 +33,14 @@ class CategorySerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data["family"] = self.context["request"].user.profile.family
         return super().create(validated_data)
+    
+class ShopItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Shop_items
+        fields = '__all__'    
+
+class ShopListSerializer(serializers.ModelSerializer):
+    items = ShopItemSerializer(many=True, read_only=True)
+    class Meta:
+        model = Shopping_List
+        fields = '__all__'
