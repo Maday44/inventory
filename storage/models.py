@@ -71,10 +71,12 @@ class ShoppingCategory(models.Model):
     def __str__(self):
         return f"{self.name} {'(default)' if self.is_default else ''}"
 
+
     @classmethod
     def create_default_categories(cls):
-        for cat in cls.DEFAULT_CATEGORIES:
+        for cat in cls.DEFAULT_SHOP_CATEGORIES:
             cls.objects.get_or_create(name=cat, is_default=True, family=None)
+
 
 
 class Food_items(models.Model):
@@ -194,17 +196,58 @@ class Shopping_List(models.Model):
     budget = models.DecimalField(max_digits=10, decimal_places=2)
     completed = models.BooleanField(default=False)
     
+    def __str__(self):
+        return f"{self.title} ({self.category}) created by {self.created_by}"
+    
     
 class Shop_items(models.Model):
-    shopping_list = models.ForeignKey(Shopping_List, on_delete=models.CASCADE, related_name='items')
-    food_item = models.ForeignKey(Food_items, on_delete=models.SET_NULL, null=True, blank=True, related_name='entries')
-    other_item = models.ForeignKey(Other_items, on_delete=models.SET_NULL, null=True, blank=True, related_name='entries')
-    name = models.CharField(blank=False, max_length=512)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='items')
+
+    class Types(models.TextChoices):
+        FOOD = "food", "Food"
+        OTHER = "other", "Other"
+
+    shopping_list = models.ForeignKey(
+        Shopping_List, on_delete=models.CASCADE, related_name='items'
+    )
+    type = models.CharField(max_length=10, choices=Types.choices)
+
+    # Optional links to predefined items
+    food_item = models.ForeignKey(
+        Food_items, on_delete=models.SET_NULL, null=True, blank=True, related_name='shop_entries'
+    )
+    other_item = models.ForeignKey(
+        Other_items, on_delete=models.SET_NULL, null=True, blank=True, related_name='shop_entries'
+    )
+
+    # Manual entry name (if not using existing item)
+    item_name = models.CharField(max_length=512, blank=True)
+
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shop_items')
     quantity = models.PositiveIntegerField(default=1)
-    price = models.DecimalField(max_digits=10,decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
     purchased = models.BooleanField(default=False)
-    
+
+    def __str__(self):
+        name = (
+            self.item_name
+            or (self.food_item.title if self.food_item else None)
+            or (self.other_item.title if self.other_item else None)
+            or "Unnamed"
+        )
+        return f"{name} (x{self.quantity})"
+
+    def clean(self):
+        """Ensure that exactly one item source is set."""
+        from django.core.exceptions import ValidationError
+
+        # Can't have both food_item and other_item at once
+        if self.food_item and self.other_item:
+            raise ValidationError("Select only one item type: food OR other.")
+
+        # Must have at least one name source
+        if not (self.food_item or self.other_item or self.item_name.strip()):
+            raise ValidationError("Provide either a linked item or a manual item name.")
+
     
 @receiver(post_save, sender=User)
 def assign_permissions(sender, instance, created, **kwargs):
