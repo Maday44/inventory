@@ -325,3 +325,5 @@ def expired_items(request):
     ).order_by('exp_date')
 
     return render(request, "storage/expired_items.html", {"foods": expired_foods})
+
+#shop add 
