@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "storage/navbar.html" %}
+
+<div class="container mt-4">
+    <h2>Edit Shopping List: {{ shopping_list.title }}</h2>
+    
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button type="submit" class="btn btn-success">Save Changes</button>
+        <a href="{% url 'view_shopping_list' shopping_list.slug %}" class="btn btn-primary">Cancel</a>
+    </form>
+</div>
+
+{% endblock %}

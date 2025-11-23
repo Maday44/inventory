@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include "storage/navbar.html" %}
+
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">🛒 Family Shopping Lists</h2>
+
+    <!-- Add New Shopping List Button -->
+    <div class="text-end mb-3">
+        <a href="{% url 'add_shopping_list' %}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> New Shopping List
+        </a>
+    </div>
+
+    {% if lists %}
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            {% for list in lists %}
+            <div class="col">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            {# Link to the detail view using slug. If your urls.py uses pk instead, replace list.slug with list.pk #}
+                            <a href="{% url 'view_shopping_list' list.slug %}" class="text-decoration-none text-dark fw-bold">
+                                {{ list.title }}
+                            </a>
+                        </h5>
+
+                        {% if list.category %}
+                        <p class="text-muted mb-1">
+                            🏷️ Category: <strong>{{ list.category.name }}</strong>
+                        </p>
+                        {% endif %}
+
+                        <p class="mb-1">
+                            💰 Budget: £{{ list.budget }}
+                        </p>
+
+                        <p class="mb-1">
+                            👤 Created by: {{ list.created_by.username }}
+                        </p>
+
+                        <p class="mb-1">
+                            📅 Created: {{ list.created|date:"d M Y" }}
+                        </p>
+
+                        <p class="mb-1">
+                            ⏰ Last Updated: {{ list.updated|date:"d M Y H:i" }}
+                        </p>
+
+                        <p class="mt-2">
+                            {% if list.completed %}
+                                <span class="badge bg-success">Completed</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">In Progress</span>
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="card-footer bg-transparent border-0 text-end">
+                        <a href="" class="btn btn-primary btn-sm">
+                            <i class=""></i> Send
+                        </a>
+                        <a href="{% url 'view_shopping_list' list.slug %}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-eye"></i> View
+                        </a>
+                        <a href="{% url 'edit_shopping_list' list.slug %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-pencil-square"></i> Edit
+                        </a>
+                        <a href="{% url 'delete_shopping_list' list.slug %}" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-trash"></i> Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center mt-5">
+            <p class="text-muted fs-5">You don’t have any shopping lists yet.</p>
+            <a href="{% url 'create_shopping_list' %}" class="btn btn-outline-primary">
+                <i class="bi bi-plus"></i> Create your first list
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

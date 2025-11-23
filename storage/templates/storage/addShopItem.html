@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "storage/navbar.html" %}
+
+<div class="container mt-5">
+    <h2>{{ item|default_if_none:"Add" }} Shopping Item</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Save</button>
+        <a href="{% if item %}{% url 'view_shopping_list' item.shopping_list.slug %}{% else %}{% url 'view_shopping_list' shop_list.slug %}{% endif %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -184,30 +184,33 @@ class ItemExpiry(models.Model):
     def __str__(self):
         return f"{self.item.title} expires {self.exp_date}"
 
-class Shopping_List(models.Model):
+class ShoppingList(models.Model):
     title = models.CharField(blank=False, max_length=512)
     category = models.ForeignKey(
         ShoppingCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name="shopping_List"
     )
-    family =  models.ForeignKey("Family", on_delete=models.CASCADE, related_name="shopping_lists")
+    family = models.ForeignKey(Family, null=True,on_delete=models.CASCADE, related_name='shopping_lists')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shopping_lists')
     created = models.DateTimeField(auto_now_add=True)
     updated =  models.DateTimeField(auto_now=True)
     budget = models.DecimalField(max_digits=10, decimal_places=2)
     completed = models.BooleanField(default=False)
-    
+    is_active = models.BooleanField(default=True)
+    slug = models.SlugField(unique=True, blank=False, null=False)
+
+
     def __str__(self):
         return f"{self.title} ({self.category}) created by {self.created_by}"
     
     
-class Shop_items(models.Model):
+class Shopitems(models.Model):
 
     class Types(models.TextChoices):
         FOOD = "food", "Food"
         OTHER = "other", "Other"
 
     shopping_list = models.ForeignKey(
-        Shopping_List, on_delete=models.CASCADE, related_name='items'
+        ShoppingList, on_delete=models.CASCADE, related_name='items'
     )
     type = models.CharField(max_length=10, choices=Types.choices)
 
@@ -221,7 +224,7 @@ class Shop_items(models.Model):
 
     # Manual entry name (if not using existing item)
     item_name = models.CharField(max_length=512, blank=True)
-
+    family = models.ForeignKey(Family, null=True, on_delete=models.CASCADE, related_name='shop_items')
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shop_items')
     quantity = models.PositiveIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2)

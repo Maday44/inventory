@@ -36,11 +36,11 @@ class CategorySerializer(serializers.ModelSerializer):
     
 class ShopItemSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Shop_items
+        model = Shopitems
         fields = '__all__'    
 
 class ShopListSerializer(serializers.ModelSerializer):
     items = ShopItemSerializer(many=True, read_only=True)
     class Meta:
-        model = Shopping_List
+        model = ShoppingList
         fields = '__all__'

@@ -2,7 +2,8 @@
 __pycache__/
 *.pyc
 
-
+# personal
+Diary/
 # Virtual environments
 env/
 venv/

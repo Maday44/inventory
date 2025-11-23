@@ -326,4 +326,100 @@ def expired_items(request):
 
     return render(request, "storage/expired_items.html", {"foods": expired_foods})
 
-#shop add 
+
+@login_required 
+# see all the food in user's family 
+def all_shopping_list(request): 
+    user_family = request.user.profile.family 
+    shop_lists = ShoppingList.objects.filter( family=user_family, is_active=True )
+    return render(request, 'storage/shoppingLists.html', {'lists': shop_lists})
+
+@login_required
+def view_shopping_list(request, slug):
+    shop_list = get_object_or_404(ShoppingList, slug=slug)
+    items = shop_list.items.all()
+    return render(request, "storage/shopping_list_detail.html", {
+        "shop_list": shop_list,
+        "items": items
+    })
+
+@login_required
+@permission_required('storage.add_shopping_list', raise_exception=True)
+def add_shopping_list(request):
+    if request.method == "POST":
+        form = ShoppingListForm(request.POST, request.FILES)
+        if form.is_valid():
+            shopping_list = form.save(commit=False)
+            shopping_list.family = request.user.profile.family
+            shopping_list.created_by = request.user 
+            shopping_list.save()
+            return redirect("all_shop_list")
+    else:
+        form = ShoppingListForm()
+        
+    return render(request, "storage/add_shopping_list.html", {"form": form})
+
+@login_required
+def edit_shopping_list(request, slug):
+    shopping_list = get_object_or_404(ShoppingList, slug=slug)
+
+    if request.user.profile.role not in [Profile.Role.OWNER, Profile.Role.ADMIN]:
+        return HttpResponseForbidden("Access Denied")
+
+    if request.method == "POST":
+        form = ShoppingListForm(request.POST, request.FILES, instance=shopping_list)
+        if form.is_valid():
+            form.save()
+            return redirect("view_shopping_list", slug=shopping_list.slug)
+    else:
+        form = ShoppingListForm(instance=shopping_list)
+
+    return render(request, "storage/edit_shopping_list.html", {
+        "form": form,
+        "shopping_list": shopping_list
+    })
+
+@login_required
+def delete_shopping_list(request, slug):
+    shopping_list = get_object_or_404(ShoppingList, slug=slug)
+
+    if request.user.profile.role not in [Profile.Role.OWNER, Profile.Role.ADMIN]:
+        return HttpResponseForbidden("Access Denied")
+
+    if request.method == "POST":
+        shopping_list.delete()
+        return redirect(f"{reverse('all_shop_list')}?success=1")
+
+    return render(request, "storage/confirm_delete.html", {"shopping_list": shopping_list})
+
+def add_shopping_item(request, slug):
+    shop_list = get_object_or_404(ShoppingList, slug=slug)
+    if request.method == "POST":
+        form = ShoppingItemForm(request.POST)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.shopping_list = shop_list
+            item.owner = request.user
+            item.family = shop_list.family
+            item.save()
+            return redirect("view_shopping_list", slug=slug)
+    else:
+        form = ShoppingItemForm()
+    return render(request, "storage/addShopItem.html", {"form": form, "shop_list": shop_list})
+
+def edit_shopping_item(request, item_id):
+    item = get_object_or_404(Shopitems, id=item_id)
+    if request.method == "POST":
+        form = ShoppingItemForm(request.POST, instance=item)
+        if form.is_valid():
+            form.save()
+            return redirect("view_shopping_list", slug=item.shopping_list.slug)
+    else:
+        form = ShoppingItemForm(instance=item)
+    return render(request, "storage/addShopItem.html", {"form": form, "item": item})
+
+def delete_shopping_item(request, item_id):
+    item = get_object_or_404(Shopitems, id=item_id)
+    slug = item.shopping_list.slug
+    item.delete()
+    return redirect("view_shopping_list", slug=slug)

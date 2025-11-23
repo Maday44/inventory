@@ -45,3 +45,13 @@ class ItemExpiryForm(forms.ModelForm):
         widgets = {
             "exp_date": forms.DateInput(attrs={"type": "date"})
         }
+
+class ShoppingListForm(forms.ModelForm):
+    class Meta:
+        model = ShoppingList
+        fields = "__all__"
+
+class ShoppingItemForm(forms.ModelForm):
+    class Meta:
+        model = Shopitems
+        fields = "__all__"

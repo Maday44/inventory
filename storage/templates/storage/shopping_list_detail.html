@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "storage/navbar.html" %}
+
+<div class="container mt-5">
+    <h2>{{ shop_list.title }} 🛒</h2>
+    <p>Category: {{ shop_list.category }}</p>
+
+    <div class="mb-3">
+        <a href="{% url 'add_shopping_item' shop_list.slug %}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Add Item
+        </a>
+    </div>
+
+    {% if items %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Type</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Purchased</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item }}</td>
+                <td>{{ item.get_type_display }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price }}</td>
+                <td>{{ item.purchased }}</td>
+                <td>
+                    <a href="{% url 'edit_shopping_item' item.id %}" class="btn btn-sm btn-primary">Edit</a>
+                    <a href="{% url 'delete_shopping_item' item.id %}" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No items yet. Click "Add Item" to create one.</p>
+    {% endif %}
+</div>
+{% endblock %}

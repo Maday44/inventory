@@ -2,22 +2,32 @@
 
 {% block content %}
 {% include "storage/navbar.html" %}
+
 <div class="container mt-5">
-    <h3 class="lead">Do you really want to delete this item?</h3>
-    <form method="post">
-        {% csrf_token %}
+    <div class="card shadow-sm p-4">
+        <h3 class="mb-3 text-danger">Confirm Deletion</h3>
+        <p class="lead">Do you really want to delete this item?</p>
 
-        {% if food %}
-            <button type="submit" class="btn btn-danger">Delete {{ food.title }}</button>
-            <a href="{% url 'food-detail' food.slug %}" class="btn btn-primary">Cancel</a>
+        <form method="post">
+            {% csrf_token %}
 
-        {% elif other %}
-            <button type="submit" class="btn btn-danger">Delete {{ other.title }}</button>
-            <a href="{% url 'other-detail' other.slug %}" class="btn btn-primary">Cancel</a>
+            {% if food %}
+                <button type="submit" class="btn btn-danger">Delete {{ food.title }}</button>
+                <a href="{% url 'food-detail' food.slug %}" class="btn btn-secondary">Cancel</a>
 
-        {% else %}
-            <p class="text-danger">Error: No item found to delete.</p>
-        {% endif %}
-    </form>
+            {% elif other %}
+                <button type="submit" class="btn btn-danger">Delete {{ other.title }}</button>
+                <a href="{% url 'other-detail' other.slug %}" class="btn btn-secondary">Cancel</a>
+
+            {% elif shop_lists %}
+                <button type="submit" class="btn btn-danger">Delete {{ shop_lists.title }}</button>
+                <a href="{% url 'all_shop_list' %}" class="btn btn-secondary">Cancel</a>
+
+            {% else %}
+                <p class="text-danger">Error: No item found to delete.</p>
+            {% endif %}
+        </form>
+    </div>
 </div>
+
 {% endblock %}

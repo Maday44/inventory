@@ -5,8 +5,8 @@ admin.site.register(Food_items)
 admin.site.register(Other_items)
 admin.site.register(Profile)
 admin.site.register(Category)
-admin.site.register(Shop_items)
-admin.site.register(Shopping_List)
+admin.site.register(Shopitems)
+admin.site.register(ShoppingList)
 
 class ProfileInline(admin.TabularInline):
     model = Profile

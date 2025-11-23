@@ -38,7 +38,17 @@ urlpatterns = [
     path('add_other_items/', views.add_other_items, name='add_other'),
     path('other/<slug:slug>/delete', views.other_item_delete, name='other-delete'),
     path('other/<slug:slug>/edit/', views.other_edit, name='other_edit'),
-    
+
+    #shopping
+    path('shopping_lists/', views.all_shopping_list, name='all_shopping_list'),
+    path('shopping_lists/create/', views.add_shopping_list, name='add_shopping_list'),
+    path('shopping_lists/<slug:slug>/', views.view_shopping_list, name='view_shopping_list'),
+    path('shopping_lists/<slug:slug>/edit/', views.edit_shopping_list, name='edit_shopping_list'),
+    path('shopping_lists/<slug:slug>/delete/', views.delete_shopping_list, name='delete_shopping_list'),
+    path("shopping_lists/<slug:slug>/add_item/", views.add_shopping_item, name="add_shopping_item"),
+    path("shop_item/<int:item_id>/edit/", views.edit_shopping_item, name="edit_shopping_item"),
+    path("shop_item/<int:item_id>/delete/", views.delete_shopping_item, name="delete_shopping_item"),
+
     #profile
     path("profile/", views.profile_detail, name="my_profile"),  # view your own
     path("profile/<int:user_id>/", views.profile_detail, name="profile_detail"), 
