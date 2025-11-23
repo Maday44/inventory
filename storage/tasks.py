@@ -2,9 +2,12 @@ from django.utils import timezone
 from .models import Food_items
 from django.core.mail import send_mail
 
+
 def check_expired_items():
     today = timezone.now().date()
-    expired_items = Food_items.objects.filter(is_active=True, exp_date__lt=today, restored=False)
+    expired_items = Food_items.objects.filter(
+        is_active=True, exp_date__lt=today, restored=False
+    )
 
     for item in expired_items:
         item.is_active = False

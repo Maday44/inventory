@@ -9,41 +9,59 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('storage', '0004_remove_family_number'),
+        ("storage", "0004_remove_family_number"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='food_items',
+            name="food_items",
             unique_together=set(),
         ),
         migrations.AlterUniqueTogether(
-            name='other_items',
+            name="other_items",
             unique_together=set(),
         ),
         migrations.AddField(
-            model_name='food_items',
-            name='family',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, related_name='food_items', to='storage.family'),
+            model_name="food_items",
+            name="family",
+            field=models.ForeignKey(
+                default=1,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="food_items",
+                to="storage.family",
+            ),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='other_items',
-            name='family',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, related_name='other_items', to='storage.family'),
+            model_name="other_items",
+            name="family",
+            field=models.ForeignKey(
+                default=1,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="other_items",
+                to="storage.family",
+            ),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='food_items',
-            name='exp_date',
-            field=models.DateField(blank=True, null=True, validators=[django.core.validators.MaxValueValidator(datetime.date(2030, 10, 10))]),
+            model_name="food_items",
+            name="exp_date",
+            field=models.DateField(
+                blank=True,
+                null=True,
+                validators=[
+                    django.core.validators.MaxValueValidator(
+                        datetime.date(2030, 10, 10)
+                    )
+                ],
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='food_items',
-            unique_together={('brand', 'title', 'quantity', 'family')},
+            name="food_items",
+            unique_together={("brand", "title", "quantity", "family")},
         ),
         migrations.AlterUniqueTogether(
-            name='other_items',
-            unique_together={('brand', 'title', 'quantity', 'family')},
+            name="other_items",
+            unique_together={("brand", "title", "quantity", "family")},
         ),
     ]

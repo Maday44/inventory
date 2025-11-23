@@ -7,30 +7,59 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('storage', '0007_remove_food_items_category_delete_category'),
+        ("storage", "0007_remove_food_items_category_delete_category"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Category',
+            name="Category",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('is_default', models.BooleanField(default=False)),
-                ('family', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='categories', to='storage.family')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("is_default", models.BooleanField(default=False)),
+                (
+                    "family",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="categories",
+                        to="storage.family",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('name', 'family')},
+                "unique_together": {("name", "family")},
             },
         ),
         migrations.AddField(
-            model_name='food_items',
-            name='category',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='food_items', to='storage.category'),
+            model_name="food_items",
+            name="category",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="food_items",
+                to="storage.category",
+            ),
         ),
         migrations.AddField(
-            model_name='other_items',
-            name='category',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='other_items', to='storage.category'),
+            model_name="other_items",
+            name="category",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="other_items",
+                to="storage.category",
+            ),
         ),
     ]

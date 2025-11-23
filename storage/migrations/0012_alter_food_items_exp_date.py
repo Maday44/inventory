@@ -8,13 +8,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('storage', '0011_alter_food_items_exp_date_shoppingcategory_and_more'),
+        ("storage", "0011_alter_food_items_exp_date_shoppingcategory_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='food_items',
-            name='exp_date',
-            field=models.DateField(blank=True, null=True, validators=[django.core.validators.MaxValueValidator(datetime.date(2030, 11, 4))]),
+            model_name="food_items",
+            name="exp_date",
+            field=models.DateField(
+                blank=True,
+                null=True,
+                validators=[
+                    django.core.validators.MaxValueValidator(datetime.date(2030, 11, 4))
+                ],
+            ),
         ),
     ]

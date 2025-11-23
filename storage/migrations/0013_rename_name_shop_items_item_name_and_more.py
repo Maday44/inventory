@@ -6,27 +6,31 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('storage', '0012_alter_food_items_exp_date'),
+        ("storage", "0012_alter_food_items_exp_date"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='shop_items',
-            old_name='name',
-            new_name='Item_name',
+            model_name="shop_items",
+            old_name="name",
+            new_name="Item_name",
         ),
         migrations.RemoveField(
-            model_name='shop_items',
-            name='food_item',
+            model_name="shop_items",
+            name="food_item",
         ),
         migrations.RemoveField(
-            model_name='shop_items',
-            name='other_item',
+            model_name="shop_items",
+            name="other_item",
         ),
         migrations.AddField(
-            model_name='shop_items',
-            name='type',
-            field=models.CharField(choices=[('food', 'Food'), ('other', 'Other')], default='jj', max_length=10),
+            model_name="shop_items",
+            name="type",
+            field=models.CharField(
+                choices=[("food", "Food"), ("other", "Other")],
+                default="jj",
+                max_length=10,
+            ),
             preserve_default=False,
         ),
     ]

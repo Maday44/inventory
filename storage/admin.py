@@ -8,10 +8,12 @@ admin.site.register(Category)
 admin.site.register(Shopitems)
 admin.site.register(ShoppingList)
 
+
 class ProfileInline(admin.TabularInline):
     model = Profile
     extra = 0
     fields = ("display_name", "role", "user")
+
 
 @admin.register(Family)
 class FamilyAdmin(admin.ModelAdmin):
@@ -20,6 +22,7 @@ class FamilyAdmin(admin.ModelAdmin):
 
     def member_count(self, obj):
         return obj.members.count()
+
     member_count.short_description = "Number of Members"
 
     def get_members(self, obj):
@@ -27,4 +30,5 @@ class FamilyAdmin(admin.ModelAdmin):
         if members.exists():
             return ", ".join([m.display_name for m in members])
         return "No members"
+
     get_members.short_description = "Members"

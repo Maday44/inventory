@@ -25,17 +25,21 @@ class Category(models.Model):
         "Stationery",
         "Electronics",
         "Clothing",
-        "Miscellaneous"
+        "Miscellaneous",
     ]
 
     name = models.CharField(max_length=255, unique=False)
     is_default = models.BooleanField(default=False)
     family = models.ForeignKey(
-        "Family", on_delete=models.CASCADE, null=True, blank=True, related_name="categories"
-    ) 
+        "Family",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="categories",
+    )
 
     class Meta:
-        unique_together = ('name', 'family')
+        unique_together = ("name", "family")
 
     def __str__(self):
         return f"{self.name} {'(default)' if self.is_default else ''}"
@@ -44,6 +48,7 @@ class Category(models.Model):
     def create_default_categories(cls):
         for cat in cls.DEFAULT_CATEGORIES:
             cls.objects.get_or_create(name=cat, is_default=True, family=None)
+
 
 class ShoppingCategory(models.Model):
     DEFAULT_SHOP_CATEGORIES = [
@@ -56,21 +61,24 @@ class ShoppingCategory(models.Model):
         "Party",
         "Birthdays",
         "Gifts",
-        "Clothes"
+        "Clothes",
     ]
 
     name = models.CharField(max_length=255, unique=False)
     is_default = models.BooleanField(default=False)
     family = models.ForeignKey(
-        "Family", on_delete=models.CASCADE, null=True, blank=True, related_name="shopping_categories"
-    ) 
+        "Family",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="shopping_categories",
+    )
 
     class Meta:
-        unique_together = ('name', 'family')
+        unique_together = ("name", "family")
 
     def __str__(self):
         return f"{self.name} {'(default)' if self.is_default else ''}"
-
 
     @classmethod
     def create_default_categories(cls):
@@ -78,33 +86,39 @@ class ShoppingCategory(models.Model):
             cls.objects.get_or_create(name=cat, is_default=True, family=None)
 
 
-
 class Food_items(models.Model):
     image = models.ImageField(
-        default="items/default_food.jpg",
-        upload_to="items/actual_items/food"
+        default="items/default_food.jpg", upload_to="items/actual_items/food"
     )
     brand = models.CharField(blank=True, max_length=512)
     title = models.CharField(blank=False, max_length=512)
-    quantity = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(50)])
+    quantity = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(50)]
+    )
     exp_date = models.DateField(
-        null=True, blank=True,
-        validators=[MaxValueValidator(date.today() + timedelta(days=5 * 365))]
+        null=True,
+        blank=True,
+        validators=[MaxValueValidator(date.today() + timedelta(days=5 * 365))],
     )
     slug = models.SlugField(editable=False, unique=True)
-    
+
     category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="food_items"
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="food_items",
     )
 
-    family = models.ForeignKey("Family", on_delete=models.CASCADE, related_name="food_items")
+    family = models.ForeignKey(
+        "Family", on_delete=models.CASCADE, related_name="food_items"
+    )
     is_active = models.BooleanField(default=True)
     deleted_on = models.DateTimeField(null=True, blank=True)
     restored = models.BooleanField(default=False)
 
-
     class Meta:
-        unique_together = ('brand', 'title', 'quantity', 'family')
+        unique_together = ("brand", "title", "quantity", "family")
 
     def save(self, *args, **kwargs):
         self.slug = slugify(f"{self.brand}-{self.title}-{self.quantity}")
@@ -117,24 +131,31 @@ class Food_items(models.Model):
 class Other_items(models.Model):
     image = models.ImageField(
         default="public_image/items/default_image.jpg",
-        upload_to="public_image/items/actual_items/other"
+        upload_to="public_image/items/actual_items/other",
     )
     brand = models.CharField(blank=True, max_length=512)
     title = models.CharField(blank=False, max_length=512)
-    quantity = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(50)])
+    quantity = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(50)]
+    )
     slug = models.SlugField(editable=False, unique=True)
 
     category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="other_items"
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="other_items",
     )
 
-    family = models.ForeignKey("Family", on_delete=models.CASCADE, related_name="other_items")
+    family = models.ForeignKey(
+        "Family", on_delete=models.CASCADE, related_name="other_items"
+    )
     is_active = models.BooleanField(default=True)
     deleted_on = models.DateTimeField(null=True, blank=True)
 
-
     class Meta:
-        unique_together = ('brand', 'title', 'quantity', 'family')
+        unique_together = ("brand", "title", "quantity", "family")
 
     def save(self, *args, **kwargs):
         self.slug = slugify(f"{self.brand}-{self.title}-{self.quantity}")
@@ -160,20 +181,27 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     profile_pic = models.ImageField(
         default="profile_pics/default_profile_pic.jpg",
-        upload_to="profile_pic/personal_images"
+        upload_to="profile_pic/personal_images",
     )
-    family = models.ForeignKey("Family", on_delete=models.CASCADE, related_name="members")
+    family = models.ForeignKey(
+        "Family", on_delete=models.CASCADE, related_name="members"
+    )
     display_name = models.CharField(max_length=512)
     role = models.CharField(max_length=10, choices=Role.choices)
 
     def __str__(self):
         return f"{self.display_name} ({self.role})"
 
+
 class ItemExpiry(models.Model):
-    item = models.ForeignKey("Food_items", on_delete=models.CASCADE, related_name="expiry_records")
+    item = models.ForeignKey(
+        "Food_items", on_delete=models.CASCADE, related_name="expiry_records"
+    )
     exp_date = models.DateField(null=True, blank=True)
     added_on = models.DateTimeField(auto_now_add=True)
-    is_active = models.BooleanField(default=True)  # allows re-adding or reactivating expiry tracking
+    is_active = models.BooleanField(
+        default=True
+    )  # allows re-adding or reactivating expiry tracking
 
     def is_expired(self):
         return self.exp_date and self.exp_date < date.today()
@@ -184,25 +212,33 @@ class ItemExpiry(models.Model):
     def __str__(self):
         return f"{self.item.title} expires {self.exp_date}"
 
+
 class ShoppingList(models.Model):
     title = models.CharField(blank=False, max_length=512)
     category = models.ForeignKey(
-        ShoppingCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name="shopping_List"
+        ShoppingCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="shopping_List",
     )
-    family = models.ForeignKey(Family, null=True,on_delete=models.CASCADE, related_name='shopping_lists')
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shopping_lists')
+    family = models.ForeignKey(
+        Family, null=True, on_delete=models.CASCADE, related_name="shopping_lists"
+    )
+    created_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="shopping_lists"
+    )
     created = models.DateTimeField(auto_now_add=True)
-    updated =  models.DateTimeField(auto_now=True)
+    updated = models.DateTimeField(auto_now=True)
     budget = models.DecimalField(max_digits=10, decimal_places=2)
     completed = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     slug = models.SlugField(unique=True, blank=False, null=False)
 
-
     def __str__(self):
         return f"{self.title} ({self.category}) created by {self.created_by}"
-    
-    
+
+
 class Shopitems(models.Model):
 
     class Types(models.TextChoices):
@@ -210,22 +246,32 @@ class Shopitems(models.Model):
         OTHER = "other", "Other"
 
     shopping_list = models.ForeignKey(
-        ShoppingList, on_delete=models.CASCADE, related_name='items'
+        ShoppingList, on_delete=models.CASCADE, related_name="items"
     )
     type = models.CharField(max_length=10, choices=Types.choices)
 
     # Optional links to predefined items
     food_item = models.ForeignKey(
-        Food_items, on_delete=models.SET_NULL, null=True, blank=True, related_name='shop_entries'
+        Food_items,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="shop_entries",
     )
     other_item = models.ForeignKey(
-        Other_items, on_delete=models.SET_NULL, null=True, blank=True, related_name='shop_entries'
+        Other_items,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="shop_entries",
     )
 
     # Manual entry name (if not using existing item)
     item_name = models.CharField(max_length=512, blank=True)
-    family = models.ForeignKey(Family, null=True, on_delete=models.CASCADE, related_name='shop_items')
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shop_items')
+    family = models.ForeignKey(
+        Family, null=True, on_delete=models.CASCADE, related_name="shop_items"
+    )
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="shop_items")
     quantity = models.PositiveIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     purchased = models.BooleanField(default=False)
@@ -251,7 +297,7 @@ class Shopitems(models.Model):
         if not (self.food_item or self.other_item or self.item_name.strip()):
             raise ValidationError("Provide either a linked item or a manual item name.")
 
-    
+
 @receiver(post_save, sender=User)
 def assign_permissions(sender, instance, created, **kwargs):
     if created:
@@ -263,16 +309,24 @@ def assign_permissions(sender, instance, created, **kwargs):
             perms = Permission.objects.filter(
                 content_type__in=[food_type, other_type],
                 codename__in=[
-                    "add_fooditems", "change_fooditems", "delete_fooditems", "view_fooditems",
-                    "add_otheritems", "change_otheritems", "delete_otheritems", "view_otheritems"
-                ]
+                    "add_fooditems",
+                    "change_fooditems",
+                    "delete_fooditems",
+                    "view_fooditems",
+                    "add_otheritems",
+                    "change_otheritems",
+                    "delete_otheritems",
+                    "view_otheritems",
+                ],
             )
         else:
             perms = Permission.objects.filter(
                 content_type__in=[food_type, other_type],
                 codename__in=[
-                    "change_fooditems", "view_fooditems",
-                    "change_otheritems", "view_otheritems"
-                ]
+                    "change_fooditems",
+                    "view_fooditems",
+                    "change_otheritems",
+                    "view_otheritems",
+                ],
             )
         instance.user_permissions.set(perms)

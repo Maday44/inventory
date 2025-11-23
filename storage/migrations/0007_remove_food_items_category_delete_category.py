@@ -6,15 +6,15 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('storage', '0006_alter_food_items_exp_date_category_and_more'),
+        ("storage", "0006_alter_food_items_exp_date_category_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='food_items',
-            name='category',
+            model_name="food_items",
+            name="category",
         ),
         migrations.DeleteModel(
-            name='Category',
+            name="Category",
         ),
     ]

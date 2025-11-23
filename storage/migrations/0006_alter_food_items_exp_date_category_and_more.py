@@ -9,29 +9,58 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('storage', '0005_alter_food_items_unique_together_and_more'),
+        ("storage", "0005_alter_food_items_unique_together_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='food_items',
-            name='exp_date',
-            field=models.DateField(blank=True, null=True, validators=[django.core.validators.MaxValueValidator(datetime.date(2030, 10, 24))]),
+            model_name="food_items",
+            name="exp_date",
+            field=models.DateField(
+                blank=True,
+                null=True,
+                validators=[
+                    django.core.validators.MaxValueValidator(
+                        datetime.date(2030, 10, 24)
+                    )
+                ],
+            ),
         ),
         migrations.CreateModel(
-            name='Category',
+            name="Category",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('family', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='categories', to='storage.family')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                (
+                    "family",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="categories",
+                        to="storage.family",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('name', 'family')},
+                "unique_together": {("name", "family")},
             },
         ),
         migrations.AddField(
-            model_name='food_items',
-            name='category',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='foods', to='storage.category'),
+            model_name="food_items",
+            name="category",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="foods",
+                to="storage.category",
+            ),
         ),
     ]

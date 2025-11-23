@@ -8,23 +8,61 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('storage', '0002_alter_food_items_exp_date'),
+        ("storage", "0002_alter_food_items_exp_date"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Profile',
+            name="Profile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('profile_pic', models.ImageField(default='profile_pics/default_profile_pic.jpg', upload_to='profile_pic/personal_images')),
-                ('display_name', models.CharField(max_length=512)),
-                ('role', models.CharField(choices=[('owner', 'Owner'), ('admin', 'Admin'), ('user', 'User')], max_length=10)),
-                ('family', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='members', to='storage.family')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "profile_pic",
+                    models.ImageField(
+                        default="profile_pics/default_profile_pic.jpg",
+                        upload_to="profile_pic/personal_images",
+                    ),
+                ),
+                ("display_name", models.CharField(max_length=512)),
+                (
+                    "role",
+                    models.CharField(
+                        choices=[
+                            ("owner", "Owner"),
+                            ("admin", "Admin"),
+                            ("user", "User"),
+                        ],
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "family",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="members",
+                        to="storage.family",
+                    ),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="profile",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.DeleteModel(
-            name='User',
+            name="User",
         ),
     ]

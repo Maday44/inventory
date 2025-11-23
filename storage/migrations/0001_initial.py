@@ -17,51 +17,155 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Family',
+            name="Family",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=512)),
-                ('number', models.IntegerField(validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(50)])),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=512)),
+                (
+                    "number",
+                    models.IntegerField(
+                        validators=[
+                            django.core.validators.MinValueValidator(1),
+                            django.core.validators.MaxValueValidator(50),
+                        ]
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Food_items',
+            name="Food_items",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('image', models.ImageField(default='items/default_food.jpg', upload_to='items/actual_items/food')),
-                ('brand', models.CharField(blank=True, max_length=512)),
-                ('title', models.CharField(max_length=512)),
-                ('quantity', models.IntegerField(validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(50)])),
-                ('exp_date', models.DateField(blank=True, null=True, validators=[django.core.validators.MaxValueValidator(datetime.date(2030, 10, 1))])),
-                ('slug', models.SlugField(editable=False, unique=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "image",
+                    models.ImageField(
+                        default="items/default_food.jpg",
+                        upload_to="items/actual_items/food",
+                    ),
+                ),
+                ("brand", models.CharField(blank=True, max_length=512)),
+                ("title", models.CharField(max_length=512)),
+                (
+                    "quantity",
+                    models.IntegerField(
+                        validators=[
+                            django.core.validators.MinValueValidator(0),
+                            django.core.validators.MaxValueValidator(50),
+                        ]
+                    ),
+                ),
+                (
+                    "exp_date",
+                    models.DateField(
+                        blank=True,
+                        null=True,
+                        validators=[
+                            django.core.validators.MaxValueValidator(
+                                datetime.date(2030, 10, 1)
+                            )
+                        ],
+                    ),
+                ),
+                ("slug", models.SlugField(editable=False, unique=True)),
             ],
             options={
-                'unique_together': {('brand', 'title', 'quantity')},
+                "unique_together": {("brand", "title", "quantity")},
             },
         ),
         migrations.CreateModel(
-            name='Other_items',
+            name="Other_items",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('image', models.ImageField(default='public_image/items/default_image.jpg', upload_to='public_image/items/actual_items/other')),
-                ('brand', models.CharField(blank=True, max_length=512)),
-                ('title', models.CharField(max_length=512)),
-                ('quantity', models.IntegerField(validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(50)])),
-                ('slug', models.SlugField(editable=False, unique=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "image",
+                    models.ImageField(
+                        default="public_image/items/default_image.jpg",
+                        upload_to="public_image/items/actual_items/other",
+                    ),
+                ),
+                ("brand", models.CharField(blank=True, max_length=512)),
+                ("title", models.CharField(max_length=512)),
+                (
+                    "quantity",
+                    models.IntegerField(
+                        validators=[
+                            django.core.validators.MinValueValidator(0),
+                            django.core.validators.MaxValueValidator(50),
+                        ]
+                    ),
+                ),
+                ("slug", models.SlugField(editable=False, unique=True)),
             ],
             options={
-                'unique_together': {('brand', 'title', 'quantity')},
+                "unique_together": {("brand", "title", "quantity")},
             },
         ),
         migrations.CreateModel(
-            name='User',
+            name="User",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('profile_pic', models.ImageField(default='profile_pics/default_profile_pic.jpg', upload_to='profile_pic/personal_images')),
-                ('display_name', models.CharField(max_length=512)),
-                ('role', models.CharField(choices=[('admin', 'Admin'), ('user', 'User')], max_length=10)),
-                ('family', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='members', to='storage.family')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "profile_pic",
+                    models.ImageField(
+                        default="profile_pics/default_profile_pic.jpg",
+                        upload_to="profile_pic/personal_images",
+                    ),
+                ),
+                ("display_name", models.CharField(max_length=512)),
+                (
+                    "role",
+                    models.CharField(
+                        choices=[("admin", "Admin"), ("user", "User")], max_length=10
+                    ),
+                ),
+                (
+                    "family",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="members",
+                        to="storage.family",
+                    ),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="profile",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

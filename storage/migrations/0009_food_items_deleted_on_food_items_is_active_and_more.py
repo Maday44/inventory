@@ -9,43 +9,66 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('storage', '0008_category_food_items_category_other_items_category'),
+        ("storage", "0008_category_food_items_category_other_items_category"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='food_items',
-            name='deleted_on',
+            model_name="food_items",
+            name="deleted_on",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='food_items',
-            name='is_active',
+            model_name="food_items",
+            name="is_active",
             field=models.BooleanField(default=True),
         ),
         migrations.AddField(
-            model_name='other_items',
-            name='deleted_on',
+            model_name="other_items",
+            name="deleted_on",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='other_items',
-            name='is_active',
+            model_name="other_items",
+            name="is_active",
             field=models.BooleanField(default=True),
         ),
         migrations.AlterField(
-            model_name='food_items',
-            name='exp_date',
-            field=models.DateField(blank=True, null=True, validators=[django.core.validators.MaxValueValidator(datetime.date(2030, 10, 25))]),
+            model_name="food_items",
+            name="exp_date",
+            field=models.DateField(
+                blank=True,
+                null=True,
+                validators=[
+                    django.core.validators.MaxValueValidator(
+                        datetime.date(2030, 10, 25)
+                    )
+                ],
+            ),
         ),
         migrations.CreateModel(
-            name='ItemExpiry',
+            name="ItemExpiry",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('exp_date', models.DateField(blank=True, null=True)),
-                ('added_on', models.DateTimeField(auto_now_add=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='expiry_records', to='storage.food_items')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("exp_date", models.DateField(blank=True, null=True)),
+                ("added_on", models.DateTimeField(auto_now_add=True)),
+                ("is_active", models.BooleanField(default=True)),
+                (
+                    "item",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="expiry_records",
+                        to="storage.food_items",
+                    ),
+                ),
             ],
         ),
     ]

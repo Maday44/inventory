@@ -7,28 +7,38 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('storage', '0014_alter_food_items_exp_date_and_more'),
+        ("storage", "0014_alter_food_items_exp_date_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='shopitems',
-            name='family',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='shop_items', to='storage.family'),
+            model_name="shopitems",
+            name="family",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="shop_items",
+                to="storage.family",
+            ),
         ),
         migrations.AddField(
-            model_name='shoppinglist',
-            name='is_active',
+            model_name="shoppinglist",
+            name="is_active",
             field=models.BooleanField(default=True),
         ),
         migrations.AddField(
-            model_name='shoppinglist',
-            name='slug',
+            model_name="shoppinglist",
+            name="slug",
             field=models.SlugField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='shoppinglist',
-            name='family',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='shopping_lists', to='storage.family'),
+            model_name="shoppinglist",
+            name="family",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="shopping_lists",
+                to="storage.family",
+            ),
         ),
     ]
