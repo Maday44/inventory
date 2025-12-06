@@ -6,6 +6,12 @@ from django.contrib import admin
 
 # this will be my main URL
 urlpatterns = [
+    # accounts
+    path("", views.index, name="index"),
+    path("login", views.login, name="login"),
+    path("logout", views.logout, name="logout"),
+    path("callback", views.callback, name="callback"),
+
     path("", views.view_all_items, name="view_all_items"),
     # food
     path("all_food_items", views.all_food, name="all_food"),
