@@ -59,7 +59,7 @@
                     </div>
 
                     <div class="card-footer bg-transparent border-0 text-end">
-                        <a href="" class="btn btn-primary btn-sm">
+                        <a href="{% url 'send_shopping_email' list.slug %}" class="btn btn-primary btn-sm">
                             <i class=""></i> Send
                         </a>
                         <a href="{% url 'view_shopping_list' list.slug %}" class="btn btn-primary btn-sm">

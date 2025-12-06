@@ -14,3 +14,4 @@ env_site/
 staticfiles/
 
 Diary/
+.env

@@ -3,14 +3,16 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Food_items, Other_items, Profile
 from django.contrib.auth import logout
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponse
 from django.contrib.auth.decorators import login_required, permission_required
-from django.shortcuts import render, redirect
 from .forms import *
 from django.urls import reverse
 from django.db.models import Q
 from django.contrib import messages
 from django.utils import timezone
+from django.core.mail import send_mail
+from django.conf import settings
+
 
 
 @login_required
@@ -463,3 +465,42 @@ def delete_shopping_item(request, item_id):
     slug = item.shopping_list.slug
     item.delete()
     return redirect("view_shopping_list", slug=slug)
+
+#send email shopping list
+def send_mail_shopping(request, slug):
+    # Get the shopping list
+    shopping_list = get_object_or_404(ShoppingList, slug=slug)
+    
+    # Get all family members
+    family_members = shopping_list.family.members.all()
+    recipient_emails = [member.user.email for member in family_members if member.user.email]
+
+    # Build the shopping list message
+    message_lines = [f"Shopping List: {shopping_list.title}", f"Category: {shopping_list.category}", "", "Items:"]
+    for item in shopping_list.items.all():
+        item_name = item.item_name or (item.food_item.title if item.food_item else item.other_item.title)
+        message_lines.append(f"- {item_name} | Type: {item.type} | Qty: {item.quantity} | Price: {item.price} | Purchased: {'Yes' if item.purchased else 'No'}")
+
+    message_body = "\n".join(message_lines)
+
+    # Send email on POST request
+    result = None
+    if request.method == "POST":
+        subject = f"Shopping List: {shopping_list.title}"
+        try:
+            send_mail(
+                subject,
+                message_body,
+                settings.EMAIL_HOST_USER,
+                recipient_emails,
+            )
+            result = "Email sent successfully to all family members!"
+        except Exception as e:
+            result = f"Error sending email: {e}"
+
+    return render(request, "storage/email/shoppingEmail.html", {
+        "shopping_list": shopping_list,
+        "recipient_emails": ", ".join(recipient_emails),
+        "message_body": message_body,
+        "result": result,
+    })

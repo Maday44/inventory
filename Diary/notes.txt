@@ -1,4 +1,9 @@
 
+start  web app
+- cd C:\Users\mideo\inventory
+- env_site\Scripts\activate
+- python manage.py runserver
+
 model changes 
 - python3 manage.py makemigrations
 - python3 manage.py migrate
