@@ -55,7 +55,7 @@ def logout(request):
 def account(request):
     return render(
         request,
-        "account.html",
+        "storge/account.html",
         context={
             "session": request.session.get("user"),
             "pretty": json.dumps(request.session.get("user"), indent=4),
