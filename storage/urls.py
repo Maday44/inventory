@@ -8,11 +8,12 @@ from django.contrib import admin
 urlpatterns = [
     # accounts
     path("", views.index, name="index"),
+    path("", views.view_all_items, name="view_all_items"),
     path("login", views.login, name="login"),
     path("logout", views.logout, name="logout"),
     path("callback", views.callback, name="callback"),
 
-    path("", views.view_all_items, name="view_all_items"),
+
     # food
     path("all_food_items", views.all_food, name="all_food"),
     path("food/<slug:slug>/", views.food_detail, name="food-detail"),
