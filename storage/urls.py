@@ -7,11 +7,11 @@ from django.contrib import admin
 # this will be my main URL
 urlpatterns = [
     # accounts
-    path("", views.index, name="index"),
     path("", views.view_all_items, name="view_all_items"),
-    path("login", views.login, name="login"),
+    path("login", views.login, name="logins"),
     path("logout", views.logout, name="logout"),
     path("callback", views.callback, name="callback"),
+    path("no_account", views.no_account, name="no_account"),
 
 
     # food
@@ -56,6 +56,6 @@ urlpatterns = [
     # memebers
     path("family/members/", views.all_members, name="members"),
     path("family/edit/<int:member_id>/", views.edit_member_view, name="edit_member"),
-    path("accounts/logout/", views.custom_logout, name="logout"),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

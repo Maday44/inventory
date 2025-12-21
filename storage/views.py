@@ -28,34 +28,72 @@ oauth.register(
     server_metadata_url=f"https://{settings.AUTH0_DOMAIN}/.well-known/openid-configuration",
 )
 
+def auth0_login_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not request.session.get("user"):
+            return redirect("login")
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
-def index(request):
+@auth0_login_required
+def view_all_items(request):
+    # ------------------ Check Auth0 session ------------------
+    user = request.session.get("user")
+    if not user:
+        # Not logged in via Auth0 → redirect to login
+        return redirect(reverse("login"))
 
+    # ------------------ Get user info from Auth0 ------------------
+    user_info = user.get("userinfo", {})
+    given_name = user_info.get("given_name", "User")
+    email = user_info.get("email", "")
+
+    # ------------------ Your original logic ------------------
+    try:
+        user_family = request.user.profile.family
+        food_items = Food_items.objects.filter(
+            family=user_family,
+            is_active=True,
+            exp_date__gte=timezone.now().date()
+        ).order_by("exp_date")
+        other_items = Other_items.objects.filter(family=user_family)
+    except Exception:
+        # If user does not have a family/profile
+        food_items = []
+        other_items = []
+
+    # ------------------ Render template ------------------
     return render(
         request,
-        "storage/account.html",
-        context={
-            "session": request.session.get("user"),
-            "pretty": json.dumps(request.session.get("user"), indent=4),
+        "storage/home.html",
+        {
+            "foods": food_items,
+            "others": other_items,
+            "user_info": user_info,  # Auth0 info for welcome message, profile picture
         },
     )
 
 
-def callback(request):
-    token = oauth.auth0.authorize_access_token(request)
-    request.session["user"] = token
-    return redirect(request.build_absolute_uri(reverse("index")))
-
-
+# ------------------ Login ------------------
 def login(request):
     return oauth.auth0.authorize_redirect(
-        request, request.build_absolute_uri(reverse("callback"))
+        request,
+        request.build_absolute_uri(reverse("callback"))
     )
 
+# ------------------ Callback ------------------
+def callback(request):
+    try:
+        token = oauth.auth0.authorize_access_token(request)
+        request.session["user"] = token
+        return redirect(reverse("index"))
+    except Exception:
+        # Could not authorize → show "no account" page
+        return redirect(reverse("no_account"))
 
+# ------------------ Logout ------------------
 def logout(request):
     request.session.clear()
-
     return redirect(
         f"https://{settings.AUTH0_DOMAIN}/v2/logout?"
         + urlencode(
@@ -64,10 +102,14 @@ def logout(request):
                 "client_id": settings.AUTH0_CLIENT_ID,
             },
             quote_via=quote_plus,
-        ),
+        )
     )
 
-@login_required
+# ------------------ Optional no account page ------------------
+def no_account(request):
+    return render(request, "storage/no_account.html")
+
+
 @permission_required("storage.add_fooditems", raise_exception=True)
 def add_food(request):
     if request.method == "POST":
@@ -83,7 +125,7 @@ def add_food(request):
     return render(request, "storage/add_food.html", {"form": form})
 
 
-@login_required
+
 @permission_required("storage.add_otheritems", raise_exception=True)
 def add_other_items(request):
     if request.method == "POST":
@@ -99,7 +141,7 @@ def add_other_items(request):
     # Render a dedicated 'add food' template (not food_detail)
     return render(request, "storage/add_other.html", {"form": form})
 
-
+"""
 @login_required
 # home page: show all items in the user's family
 def view_all_items(request):
@@ -111,9 +153,9 @@ def view_all_items(request):
     return render(
         request, "storage/home.html", {"foods": food_items, "others": other_items}
     )
+"""
 
 
-@login_required
 # see all the food in user's family
 def all_food(request):
     user_family = request.user.profile.family
@@ -123,7 +165,6 @@ def all_food(request):
     return render(request, "storage/allFoodPage.html", {"foods": food_items})
 
 
-@login_required
 # see all other items in user's family
 def all_other(request):
     user_family = request.user.profile.family
@@ -131,14 +172,14 @@ def all_other(request):
     return render(request, "storage/allOtherPage.html", {"Others": other_items})
 
 
-@login_required
+
 def food_detail(request, slug):
     # Only show item if it belongs to user's family
     food = get_object_or_404(Food_items, slug=slug, family=request.user.profile.family)
     return render(request, "storage/food_detail.html", {"food": food})
 
 
-@login_required
+
 def other_detail(request, slug):
     # Only show item if it belongs to user's family
     other = get_object_or_404(
@@ -155,7 +196,7 @@ def choose_add_other(request):
     return render(request, "storage/choose_add_other.html")
 
 
-@login_required
+
 def profile_detail(request, user_id=None):
     """
     Show a user's profile:
@@ -182,7 +223,7 @@ def profile_detail(request, user_id=None):
     return render(request, "storage/profile.html", {"profile": profile})
 
 
-@login_required
+
 def edit_profile(request, id):
     profile = get_object_or_404(Profile, id=id)
 
@@ -209,7 +250,7 @@ def custom_logout(request):
         return redirect("/")  # redirect GET requests away
 
 
-@login_required
+
 def food_item_delete(request, slug):
     food = get_object_or_404(Food_items, slug=slug)
     if request.user.profile.role != Profile.Role.OWNER and Profile.Role.ADMIN:
@@ -222,7 +263,7 @@ def food_item_delete(request, slug):
     return render(request, "storage/confirm_delete.html", {"food": food})
 
 
-@login_required
+
 def other_item_delete(request, slug):
     other = get_object_or_404(Other_items, slug=slug)
     if request.user.profile.role != Profile.Role.OWNER and Profile.Role.ADMIN:
@@ -235,7 +276,7 @@ def other_item_delete(request, slug):
     return render(request, "storage/confirm_delete.html", {"other": other})
 
 
-@login_required
+
 @permission_required("storage.change_fooditems", raise_exception=True)
 def food_edit(request, slug):
     food = get_object_or_404(Food_items, slug=slug)
@@ -256,7 +297,7 @@ def food_edit(request, slug):
     )
 
 
-@login_required
+
 @permission_required("storage.change_otheritems", raise_exception=True)
 def other_edit(request, slug):
     other = get_object_or_404(Other_items, slug=slug)
@@ -291,7 +332,7 @@ def member_detail(request):
     pass
 
 
-@login_required
+
 def edit_member_view(request, member_id):
     member = get_object_or_404(
         Profile, id=member_id, family=request.user.profile.family
@@ -310,7 +351,7 @@ def edit_member_view(request, member_id):
     return render(request, "storage/edit_member.html", {"member": member})
 
 
-@login_required
+
 def category_list(request):
     family = request.user.profile.family
     categories = Category.objects.filter(Q(is_default=True) | Q(family=family))
@@ -408,7 +449,6 @@ def expired_items(request):
     return render(request, "storage/expired_items.html", {"foods": expired_foods})
 
 
-@login_required
 # see all the food in user's family
 def all_shopping_list(request):
     user_family = request.user.profile.family
@@ -416,7 +456,7 @@ def all_shopping_list(request):
     return render(request, "storage/shoppingLists.html", {"lists": shop_lists})
 
 
-@login_required
+
 def view_shopping_list(request, slug):
     shop_list = get_object_or_404(ShoppingList, slug=slug)
     items = shop_list.items.all()
@@ -427,7 +467,7 @@ def view_shopping_list(request, slug):
     )
 
 
-@login_required
+
 @permission_required("storage.add_shopping_list", raise_exception=True)
 def add_shopping_list(request):
     if request.method == "POST":
@@ -444,7 +484,6 @@ def add_shopping_list(request):
     return render(request, "storage/add_shopping_list.html", {"form": form})
 
 
-@login_required
 def edit_shopping_list(request, slug):
     shopping_list = get_object_or_404(ShoppingList, slug=slug)
 
@@ -466,7 +505,6 @@ def edit_shopping_list(request, slug):
     )
 
 
-@login_required
 def delete_shopping_list(request, slug):
     shopping_list = get_object_or_404(ShoppingList, slug=slug)
 
