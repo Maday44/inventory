@@ -86,6 +86,26 @@ class ShoppingCategory(models.Model):
             cls.objects.get_or_create(name=cat, is_default=True, family=None)
 
 
+def generate_unique_slug(instance, source_field="name", slug_field="slug"):
+    ModelClass = instance.__class__
+
+    value = getattr(instance, source_field)
+    base_slug = slugify(value)
+    slug = base_slug
+    counter = 1
+
+    lookup = {
+        slug_field: slug,
+        "family": instance.family,
+    }
+
+    while ModelClass.objects.filter(**lookup).exists():
+        slug = f"{base_slug}-{counter}"
+        lookup[slug_field] = slug
+        counter += 1
+
+    return slug
+
 class Food_items(models.Model):
     image = models.ImageField(
         default="items/default_food.jpg", upload_to="items/actual_items/food"
@@ -183,14 +203,13 @@ class Profile(models.Model):
         default="profile_pics/default_profile_pic.jpg",
         upload_to="profile_pic/personal_images",
     )
-    family = models.ForeignKey(
-        "Family", on_delete=models.CASCADE, related_name="members"
-    )
+    family = models.ForeignKey("Family", on_delete=models.CASCADE, related_name="members", null=True)
     display_name = models.CharField(max_length=512)
     role = models.CharField(max_length=10, choices=Role.choices)
 
     def __str__(self):
         return f"{self.display_name} ({self.role})"
+
 
 
 class ItemExpiry(models.Model):
@@ -233,7 +252,23 @@ class ShoppingList(models.Model):
     budget = models.DecimalField(max_digits=10, decimal_places=2)
     completed = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    slug = models.SlugField(unique=True, blank=False, null=False)
+    slug = models.SlugField(blank=False, null=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["family", "slug"],
+                name="unique_shoppinglist_slug_per_family"
+            )
+        ]
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = generate_unique_slug(
+                self,
+                source_field="title",   # 🔥 FIX HERE
+            )
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.title} ({self.category}) created by {self.created_by}"
@@ -300,33 +335,49 @@ class Shopitems(models.Model):
 
 @receiver(post_save, sender=User)
 def assign_permissions(sender, instance, created, **kwargs):
-    if created:
-        profile = instance.profile
-        food_type = ContentType.objects.get_for_model(Food_items)
-        other_type = ContentType.objects.get_for_model(Other_items)
+    """
+    Assign permissions to a user after creation.
+    Does NOT create a Profile if it already exists to avoid UNIQUE constraint errors.
+    """
+    if not created:
+        return  # only run for newly created users
 
-        if profile.role in [Profile.Role.ADMIN, Profile.Role.OWNER]:
-            perms = Permission.objects.filter(
-                content_type__in=[food_type, other_type],
-                codename__in=[
-                    "add_fooditems",
-                    "change_fooditems",
-                    "delete_fooditems",
-                    "view_fooditems",
-                    "add_otheritems",
-                    "change_otheritems",
-                    "delete_otheritems",
-                    "view_otheritems",
-                ],
-            )
-        else:
-            perms = Permission.objects.filter(
-                content_type__in=[food_type, other_type],
-                codename__in=[
-                    "change_fooditems",
-                    "view_fooditems",
-                    "change_otheritems",
-                    "view_otheritems",
-                ],
-            )
-        instance.user_permissions.set(perms)
+    # Make sure Profile exists before assigning permissions
+    try:
+        profile = instance.profile
+    except Profile.DoesNotExist:
+        # Optionally create a Profile with safe defaults
+        profile = Profile.objects.create(
+            user=instance,
+            display_name=instance.username,
+            family=None,  # or a default Family instance
+            role=Profile.Role.USER
+        )
+
+    # Assign permissions based on role
+    food_type = ContentType.objects.get_for_model(Food_items)
+    other_type = ContentType.objects.get_for_model(Other_items)
+    shoppinglist_type = ContentType.objects.get_for_model(ShoppingList)
+
+    if profile.role in [Profile.Role.ADMIN, Profile.Role.OWNER]:
+        codenames = [
+            "add_fooditems", "change_fooditems", "delete_fooditems", "view_fooditems",
+            "add_otheritems", "change_otheritems", "delete_otheritems", "view_otheritems",
+            "add_shoppinglist",
+        ]
+        perms = Permission.objects.filter(
+            content_type__in=[food_type, other_type, shoppinglist_type],
+            codename__in=codenames,
+        )
+    else:
+        codenames = [
+            "change_fooditems", "view_fooditems",
+            "change_otheritems", "view_otheritems",
+        ]
+        perms = Permission.objects.filter(
+            content_type__in=[food_type, other_type],
+            codename__in=codenames,
+        )
+
+    # Assign permissions to the user
+    instance.user_permissions.set(perms)

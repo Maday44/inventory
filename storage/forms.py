@@ -55,10 +55,16 @@ class ItemExpiryForm(forms.ModelForm):
 class ShoppingListForm(forms.ModelForm):
     class Meta:
         model = ShoppingList
-        fields = "__all__"
+        fields = ["title","category","budget","completed"]
+    
+    def __init__(self, *args, **kwargs):
+        # pop 'user' from kwargs if present
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
 
 
 class ShoppingItemForm(forms.ModelForm):
     class Meta:
         model = Shopitems
-        fields = "__all__"
+        fields = ["type","food_item","other_item","item_name","quantity","price","purchased"]

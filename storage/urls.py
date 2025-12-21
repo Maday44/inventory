@@ -21,6 +21,7 @@ urlpatterns = [
     path("choose_add_food/", views.choose_add_food, name="choose_add_food"),
     path("food/<slug:slug>/delete", views.food_item_delete, name="food-delete"),
     path("food/<slug:slug>/edit/", views.food_edit, name="food_edit"),
+    
     # cateegories
     path("categories/", views.category_list, name="category"),
     # exp
@@ -31,6 +32,7 @@ urlpatterns = [
     path("item/restore/<int:pk>/", views.restore_item, name="restore_item"),
     # Expired items page
     path("items/expired/", views.expired_items, name="expired_items"),
+
     # other items
     path("all_other_items", views.all_other, name="all_other_items"),
     path("other/<slug:slug>/", views.other_detail, name="other-detail"),
@@ -38,6 +40,7 @@ urlpatterns = [
     path("add_other_items/", views.add_other_items, name="add_other"),
     path("other/<slug:slug>/delete", views.other_item_delete, name="other-delete"),
     path("other/<slug:slug>/edit/", views.other_edit, name="other_edit"),
+
     # shopping
     path("shopping_lists/", views.all_shopping_list, name="all_shopping_list"),
     path("shopping_lists/create/", views.add_shopping_list, name="add_shopping_list"),
@@ -46,8 +49,8 @@ urlpatterns = [
     path("shopping_lists/<slug:slug>/delete/",views.delete_shopping_list,name="delete_shopping_list"),
     path("shopping_lists/<slug:slug>/add_item/",views.add_shopping_item,name="add_shopping_item"),
     path("shopping_lists/<slug:slug>/send-email/",views.send_mail_shopping,name="send_shopping_email"),
-    path("shop_item/<int:item_id>/edit/",views.edit_shopping_item,name="edit_shopping_item"),
-    path("shop_item/<int:item_id>/delete/",views.delete_shopping_item,name="delete_shopping_item"),
+    path("shop_item/<slug:slug>/edit/",views.edit_shopping_item,name="edit_shopping_item"),
+    path("shop_item/<slug:slug>/delete/",views.delete_shopping_item,name="delete_shopping_item"),
 
     # profile
     path("profile/", views.profile_detail, name="my_profile"),  # view your own

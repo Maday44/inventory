@@ -109,7 +109,8 @@ def logout(request):
 def no_account(request):
     return render(request, "storage/no_account.html")
 
-
+# remove "@login_required" when auth0 is working
+@login_required
 @permission_required("storage.add_fooditems", raise_exception=True)
 def add_food(request):
     if request.method == "POST":
@@ -125,7 +126,7 @@ def add_food(request):
     return render(request, "storage/add_food.html", {"form": form})
 
 
-
+@login_required
 @permission_required("storage.add_otheritems", raise_exception=True)
 def add_other_items(request):
     if request.method == "POST":
@@ -141,7 +142,7 @@ def add_other_items(request):
     # Render a dedicated 'add food' template (not food_detail)
     return render(request, "storage/add_other.html", {"form": form})
 
-"""
+# remove?
 @login_required
 # home page: show all items in the user's family
 def view_all_items(request):
@@ -153,10 +154,11 @@ def view_all_items(request):
     return render(
         request, "storage/home.html", {"foods": food_items, "others": other_items}
     )
-"""
+
 
 
 # see all the food in user's family
+@login_required
 def all_food(request):
     user_family = request.user.profile.family
     food_items = Food_items.objects.filter(family=user_family, is_active=True).order_by(
@@ -166,20 +168,21 @@ def all_food(request):
 
 
 # see all other items in user's family
+@login_required
 def all_other(request):
     user_family = request.user.profile.family
     other_items = Other_items.objects.filter(family=user_family)
     return render(request, "storage/allOtherPage.html", {"Others": other_items})
 
 
-
+@login_required
 def food_detail(request, slug):
     # Only show item if it belongs to user's family
     food = get_object_or_404(Food_items, slug=slug, family=request.user.profile.family)
     return render(request, "storage/food_detail.html", {"food": food})
 
 
-
+@login_required
 def other_detail(request, slug):
     # Only show item if it belongs to user's family
     other = get_object_or_404(
@@ -187,16 +190,16 @@ def other_detail(request, slug):
     )
     return render(request, "storage/other_detail.html", {"other": other})
 
-
+@login_required
 def choose_add_food(request):
     return render(request, "storage/choose_add_food.html")
 
-
+@login_required
 def choose_add_other(request):
     return render(request, "storage/choose_add_other.html")
 
 
-
+@login_required
 def profile_detail(request, user_id=None):
     """
     Show a user's profile:
@@ -223,7 +226,7 @@ def profile_detail(request, user_id=None):
     return render(request, "storage/profile.html", {"profile": profile})
 
 
-
+@login_required
 def edit_profile(request, id):
     profile = get_object_or_404(Profile, id=id)
 
@@ -242,6 +245,7 @@ def edit_profile(request, id):
     return render(request, "storage/edit_profile.html", {"profile": profile})
 
 # change
+@login_required
 def custom_logout(request):
     if request.method == "POST":
         logout(request)
@@ -250,7 +254,7 @@ def custom_logout(request):
         return redirect("/")  # redirect GET requests away
 
 
-
+@login_required
 def food_item_delete(request, slug):
     food = get_object_or_404(Food_items, slug=slug)
     if request.user.profile.role != Profile.Role.OWNER and Profile.Role.ADMIN:
@@ -263,7 +267,7 @@ def food_item_delete(request, slug):
     return render(request, "storage/confirm_delete.html", {"food": food})
 
 
-
+@login_required
 def other_item_delete(request, slug):
     other = get_object_or_404(Other_items, slug=slug)
     if request.user.profile.role != Profile.Role.OWNER and Profile.Role.ADMIN:
@@ -276,7 +280,7 @@ def other_item_delete(request, slug):
     return render(request, "storage/confirm_delete.html", {"other": other})
 
 
-
+@login_required
 @permission_required("storage.change_fooditems", raise_exception=True)
 def food_edit(request, slug):
     food = get_object_or_404(Food_items, slug=slug)
@@ -297,7 +301,7 @@ def food_edit(request, slug):
     )
 
 
-
+@login_required
 @permission_required("storage.change_otheritems", raise_exception=True)
 def other_edit(request, slug):
     other = get_object_or_404(Other_items, slug=slug)
@@ -319,7 +323,7 @@ def other_edit(request, slug):
         {"form": form, "other": other, "is_edit": True},
     )
 
-
+@login_required
 def all_members(request):
     family = request.user.profile.family
     members = family.members.select_related("user").all()
@@ -327,12 +331,12 @@ def all_members(request):
         request, "storage/members.html", {"family": family, "members": members}
     )
 
-
+@login_required
 def member_detail(request):
     pass
 
 
-
+@login_required
 def edit_member_view(request, member_id):
     member = get_object_or_404(
         Profile, id=member_id, family=request.user.profile.family
@@ -351,7 +355,7 @@ def edit_member_view(request, member_id):
     return render(request, "storage/edit_member.html", {"member": member})
 
 
-
+@login_required
 def category_list(request):
     family = request.user.profile.family
     categories = Category.objects.filter(Q(is_default=True) | Q(family=family))
@@ -373,7 +377,7 @@ def category_list(request):
     }
     return render(request, "storage/category.html", context)
 
-
+@login_required
 def delete_category(request, pk):
     category = get_object_or_404(Category, pk=pk, family=request.user.profile.family)
     if category.is_default:
@@ -383,7 +387,7 @@ def delete_category(request, pk):
         messages.success(request, f"Category '{category.name}' deleted successfully.")
     return redirect("category")
 
-
+@login_required
 def manage_expiry(request, item_id):
     item = get_object_or_404(Food_items, id=item_id, family=request.user.profile.family)
     expiry = item.expiry_records.filter(is_active=True).first()
@@ -406,7 +410,7 @@ def manage_expiry(request, item_id):
         {"item": item, "form": form, "expiry": expiry},
     )
 
-
+@login_required
 def delete_expiry(request, pk):
     expiry = get_object_or_404(
         ItemExpiry, pk=pk, item__family=request.user.profile.family
@@ -416,7 +420,7 @@ def delete_expiry(request, pk):
     messages.success(request, "Expiry tracking removed for this item.")
     return redirect("manage_expiry", item_id=expiry.item.id)
 
-
+@login_required
 def delete_item(request, pk):
     item = get_object_or_404(Food_items, pk=pk, family=request.user.profile.family)
     item.is_active = False
@@ -425,7 +429,7 @@ def delete_item(request, pk):
     messages.info(request, f"{item.title} has now been deleted")
     return redirect("all_food")
 
-
+@login_required
 def restore_item(request, pk):
     item = get_object_or_404(
         Food_items, pk=pk, family=request.user.profile.family, is_active=False
@@ -437,7 +441,7 @@ def restore_item(request, pk):
     messages.success(request, f"{item.title} restored successfully.")
     return redirect("all_food")
 
-
+@login_required
 def expired_items(request):
     user_family = request.user.profile.family
     today = timezone.now().date()
@@ -450,13 +454,15 @@ def expired_items(request):
 
 
 # see all the food in user's family
+@login_required
 def all_shopping_list(request):
     user_family = request.user.profile.family
     shop_lists = ShoppingList.objects.filter(family=user_family, is_active=True)
     return render(request, "storage/shoppingLists.html", {"lists": shop_lists})
 
 
-
+# shopping
+@login_required
 def view_shopping_list(request, slug):
     shop_list = get_object_or_404(ShoppingList, slug=slug)
     items = shop_list.items.all()
@@ -467,21 +473,22 @@ def view_shopping_list(request, slug):
     )
 
 
-
-@permission_required("storage.add_shopping_list", raise_exception=True)
+@login_required
+@permission_required("storage.add_shoppinglist", raise_exception=True)
 def add_shopping_list(request):
     if request.method == "POST":
-        form = ShoppingListForm(request.POST, request.FILES)
+        form = ShoppingListForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
             shopping_list = form.save(commit=False)
             shopping_list.family = request.user.profile.family
             shopping_list.created_by = request.user
             shopping_list.save()
-            return redirect("all_shop_list")
+            return redirect("all_shopping_list")
     else:
-        form = ShoppingListForm()
+        form = ShoppingListForm(user=request.user)
 
     return render(request, "storage/add_shopping_list.html", {"form": form})
+
 
 
 def edit_shopping_list(request, slug):
@@ -513,7 +520,7 @@ def delete_shopping_list(request, slug):
 
     if request.method == "POST":
         shopping_list.delete()
-        return redirect(f"{reverse('all_shop_list')}?success=1")
+        return redirect(f"{reverse('all_shopping_list')}?success=1")
 
     return render(
         request, "storage/confirm_delete.html", {"shopping_list": shopping_list}
@@ -538,8 +545,8 @@ def add_shopping_item(request, slug):
     )
 
 
-def edit_shopping_item(request, item_id):
-    item = get_object_or_404(Shopitems, id=item_id)
+def edit_shopping_item(request, slug):
+    item = get_object_or_404(Shopitems, slug=slug)
     if request.method == "POST":
         form = ShoppingItemForm(request.POST, instance=item)
         if form.is_valid():
@@ -550,8 +557,8 @@ def edit_shopping_item(request, item_id):
     return render(request, "storage/addShopItem.html", {"form": form, "item": item})
 
 
-def delete_shopping_item(request, item_id):
-    item = get_object_or_404(Shopitems, id=item_id)
+def delete_shopping_item(request, slug):
+    item = get_object_or_404(Shopitems, slug=slug)
     slug = item.shopping_list.slug
     item.delete()
     return redirect("view_shopping_list", slug=slug)
