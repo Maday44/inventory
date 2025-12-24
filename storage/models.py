@@ -86,10 +86,29 @@ class ShoppingCategory(models.Model):
             cls.objects.get_or_create(name=cat, is_default=True, family=None)
 
 
-def generate_unique_slug(instance, source_field="name", slug_field="slug"):
+# def generate_unique_slug(instance, source_field="name", slug_field="slug"):
+#     ModelClass = instance.__class__
+
+#     value = getattr(instance, source_field)
+#     base_slug = slugify(value)
+#     slug = base_slug
+#     counter = 1
+
+#     lookup = {
+#         slug_field: slug,
+#         "family": instance.family,
+#     }
+
+#     while ModelClass.objects.filter(**lookup).exists():
+#         slug = f"{base_slug}-{counter}"
+#         lookup[slug_field] = slug
+#         counter += 1
+
+#     return slug
+
+def generate_unique_slug(instance, value, slug_field="slug"):
     ModelClass = instance.__class__
 
-    value = getattr(instance, source_field)
     base_slug = slugify(value)
     slug = base_slug
     counter = 1
@@ -274,7 +293,7 @@ class ShoppingList(models.Model):
         if not self.slug:
             self.slug = generate_unique_slug(
                 self,
-                source_field="title",   # 🔥 FIX HERE
+                source_field="title",
             )
         super().save(*args, **kwargs)
 
@@ -318,6 +337,16 @@ class Shopitems(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     purchased = models.BooleanField(default=False)
+    slug = models.SlugField(blank=False, null=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["family", "slug"],
+                name="unique_shopitem_slug_per_family",
+            )
+        ]
+
 
     def __str__(self):
         name = (
@@ -327,6 +356,26 @@ class Shopitems(models.Model):
             or "Unnamed"
         )
         return f"{name} (x{self.quantity})"
+    
+    def get_display_name(self):
+        if self.item_name:
+            return self.item_name
+        if self.food_item:
+            return self.food_item.title
+        if self.other_item:
+            return self.other_item.title
+        return "item"
+
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_value = self.get_display_name()
+            self.slug = generate_unique_slug(
+                self,
+                base_value,
+            )
+        super().save(*args, **kwargs)
+
 
     def clean(self):
         """Ensure that exactly one item source is set."""
@@ -336,10 +385,9 @@ class Shopitems(models.Model):
         if self.food_item and self.other_item:
             raise ValidationError("Select only one item type: food OR other.")
 
-        # Must have at least one name source
         if not (self.food_item or self.other_item or self.item_name.strip()):
             raise ValidationError("Provide either a linked item or a manual item name.")
-
+    
 
 @receiver(post_save, sender=User)
 def assign_permissions(sender, instance, created, **kwargs):
