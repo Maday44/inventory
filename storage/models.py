@@ -115,6 +115,7 @@ class Food_items(models.Model):
     quantity = models.IntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(50)]
     )
+    price = models.DecimalField(max_digits=10, decimal_places=2)
     exp_date = models.DateField(
         null=True,
         blank=True,
@@ -141,8 +142,11 @@ class Food_items(models.Model):
         unique_together = ("brand", "title", "quantity", "family")
 
     def save(self, *args, **kwargs):
+        if self.title:
+            self.title = self.title.title()
         self.slug = slugify(f"{self.brand}-{self.title}-{self.quantity}")
         super().save(*args, **kwargs)
+
 
     def __str__(self):
         return f"{self.title} ({self.category}) - exp-date({self.exp_date})"
@@ -158,6 +162,7 @@ class Other_items(models.Model):
     quantity = models.IntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(50)]
     )
+    price = models.DecimalField(max_digits=10, decimal_places=2)
     slug = models.SlugField(editable=False, unique=True)
 
     category = models.ForeignKey(
@@ -178,8 +183,11 @@ class Other_items(models.Model):
         unique_together = ("brand", "title", "quantity", "family")
 
     def save(self, *args, **kwargs):
+        if self.title:
+            self.title = self.title.title()
         self.slug = slugify(f"{self.brand}-{self.title}-{self.quantity}")
         super().save(*args, **kwargs)
+
 
     def __str__(self):
         return f"{self.title} ({self.category})"

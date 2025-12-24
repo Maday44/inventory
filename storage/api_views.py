@@ -3,30 +3,30 @@ from .serializers import UserSerializer, FamSerializer, FoodSerializer, OtherSer
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
+from rest_framework.filters import OrderingFilter
 
 
 class FoodViewSet(viewsets.ModelViewSet):
     serializer_class = FoodSerializer
     permission_classes = [IsAuthenticated]
-    queryset = Food_items.objects.all()  #
+
+    filter_backends = [OrderingFilter]
+    ordering_fields = ["title", "quantity", "exp_date","price"]
+    ordering = ["exp_date"]
 
     def get_queryset(self):
         user_family = self.request.user.profile.family
         return Food_items.objects.filter(
-            family=user_family, is_active=True, exp_date__gte=timezone.now().date()
-        ).order_by("exp_date")
-
-    def get_queryset(self):
-        user_family = self.request.user.profile.family
-        return Food_items.objects.filter(family=user_family, is_active=True).order_by(
-            "exp_date"
+            family=user_family,
+            is_active=True,
         )
 
-
 class OtherViewSet(viewsets.ModelViewSet):
-    queryset = Other_items.objects.all()
     serializer_class = OtherSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [OrderingFilter]
+    ordering_fields = ["title", "quantity", "price"]  # add price if you have it
+    ordering = ["title"]
 
     def get_queryset(self):
         user_family = self.request.user.profile.family

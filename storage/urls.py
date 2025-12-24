@@ -8,21 +8,20 @@ from django.contrib import admin
 urlpatterns = [
     # accounts
     path("", views.view_all_items, name="view_all_items"),
-    path("login", views.login, name="logins"),
-    path("logout", views.logout, name="logout"),
-    path("callback", views.callback, name="callback"),
-    path("no_account", views.no_account, name="no_account"),
-
+    path("login/", views.login, name="logins"),
+    path("logout/", views.logout, name="logout"),
+    path("callback/", views.callback, name="callback"),
+    path("no_account/", views.no_account, name="no_account"),
 
     # food
-    path("all_food_items", views.all_food, name="all_food"),
+    path("all_food_items/", views.all_food, name="all_food"),
     path("food/<slug:slug>/", views.food_detail, name="food-detail"),
     path("add_food/", views.add_food, name="add_food"),
     path("choose_add_food/", views.choose_add_food, name="choose_add_food"),
     path("food/<slug:slug>/delete", views.food_item_delete, name="food-delete"),
     path("food/<slug:slug>/edit/", views.food_edit, name="food_edit"),
     
-    # cateegories
+    # cateegories 
     path("categories/", views.category_list, name="category"),
     # exp
     # path("expiry/manage/<int:item_id>/", views.manage_expiry, name="manage_expiry"),
@@ -34,11 +33,11 @@ urlpatterns = [
     path("items/expired/", views.expired_items, name="expired_items"),
 
     # other items
-    path("all_other_items", views.all_other, name="all_other_items"),
+    path("all_other_items/", views.all_other, name="all_other_items"),
     path("other/<slug:slug>/", views.other_detail, name="other-detail"),
     path("choose_add_other/", views.choose_add_other, name="choose_add_other"),
     path("add_other_items/", views.add_other_items, name="add_other"),
-    path("other/<slug:slug>/delete", views.other_item_delete, name="other-delete"),
+    path("other/<slug:slug>/delete/", views.other_item_delete, name="other-delete"),
     path("other/<slug:slug>/edit/", views.other_edit, name="other_edit"),
 
     # shopping

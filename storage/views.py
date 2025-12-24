@@ -156,35 +156,26 @@ def view_all_items(request):
     )
 
 
-
 # see all the food in user's family
 @login_required
 def all_food(request):
-    user_family = request.user.profile.family
-    food_items = Food_items.objects.filter(family=user_family, is_active=True).order_by(
-        "exp_date"
-    )
-    return render(request, "storage/allFoodPage.html", {"foods": food_items})
+    return render(request,"storage/allFoodPage.html")
 
 
 # see all other items in user's family
 @login_required
 def all_other(request):
-    user_family = request.user.profile.family
-    other_items = Other_items.objects.filter(family=user_family)
-    return render(request, "storage/allOtherPage.html", {"Others": other_items})
+    return render(request, "storage/allOtherPage.html")
 
 
 @login_required
 def food_detail(request, slug):
-    # Only show item if it belongs to user's family
     food = get_object_or_404(Food_items, slug=slug, family=request.user.profile.family)
     return render(request, "storage/food_detail.html", {"food": food})
 
 
 @login_required
 def other_detail(request, slug):
-    # Only show item if it belongs to user's family
     other = get_object_or_404(
         Other_items, slug=slug, family=request.user.profile.family
     )
@@ -253,7 +244,8 @@ def custom_logout(request):
     else:
         return redirect("/")  # redirect GET requests away
 
-
+# here delete like shopiing list
+# dlete comment later
 @login_required
 def food_item_delete(request, slug):
     food = get_object_or_404(Food_items, slug=slug)
@@ -511,11 +503,9 @@ def edit_shopping_list(request, slug):
         {"form": form, "shopping_list": shopping_list},
     )
 
-
 def delete_shopping_list(request, slug):
     shopping_list = get_object_or_404(ShoppingList, slug=slug)
-
-    if request.user.profile.role not in [Profile.Role.OWNER, Profile.Role.ADMIN]:
+    if request.user.profile.role != Profile.Role.OWNER and Profile.Role.ADMIN:
         return HttpResponseForbidden("Access Denied")
 
     if request.method == "POST":

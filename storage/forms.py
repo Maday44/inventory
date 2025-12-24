@@ -5,7 +5,7 @@ from .models import *
 class FoodForm(forms.ModelForm):
     class Meta:
         model = Food_items
-        fields = ["title", "category", "brand", "quantity", "exp_date", "image"]
+        fields = ["title", "category", "brand", "quantity","price", "exp_date", "image"]
         widgets = {
             "exp_date": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}
@@ -16,6 +16,7 @@ class FoodForm(forms.ModelForm):
             "title": "Name",
             "brand": "Brand",
             "quantity": "Amount / Quantity",
+            "price":"Price",
             "exp_date": "Expiry Date",
             "image": "Upload Image",
         }
@@ -24,12 +25,13 @@ class FoodForm(forms.ModelForm):
 class OtherForm(forms.ModelForm):
     class Meta:
         model = Other_items
-        fields = ["title", "category", "brand", "quantity", "image"]
+        fields = ["title", "category", "brand", "quantity", "price","image"]
         labels = {
             "category": "Category",
             "title": "Name",
             "brand": "Brand",
             "quantity": "Amount / Quantity",
+            "price":"Price",
             "image": "Upload Image",
         }
 

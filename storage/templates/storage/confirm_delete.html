@@ -19,9 +19,9 @@
                 <button type="submit" class="btn btn-danger">Delete {{ other.title }}</button>
                 <a href="{% url 'other-detail' other.slug %}" class="btn btn-secondary">Cancel</a>
 
-            {% elif shop_lists %}
+            {% elif shopping_list %}
                 <button type="submit" class="btn btn-danger">Delete {{ shop_lists.title }}</button>
-                <a href="{% url 'all_shop_list' %}" class="btn btn-secondary">Cancel</a>
+                <a href="{% url 'all_shopping_list' %}" class="btn btn-secondary">Cancel</a>
 
             {% else %}
                 <p class="text-danger">Error: No item found to delete.</p>
