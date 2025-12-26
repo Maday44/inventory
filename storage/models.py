@@ -86,26 +86,6 @@ class ShoppingCategory(models.Model):
             cls.objects.get_or_create(name=cat, is_default=True, family=None)
 
 
-# def generate_unique_slug(instance, source_field="name", slug_field="slug"):
-#     ModelClass = instance.__class__
-
-#     value = getattr(instance, source_field)
-#     base_slug = slugify(value)
-#     slug = base_slug
-#     counter = 1
-
-#     lookup = {
-#         slug_field: slug,
-#         "family": instance.family,
-#     }
-
-#     while ModelClass.objects.filter(**lookup).exists():
-#         slug = f"{base_slug}-{counter}"
-#         lookup[slug_field] = slug
-#         counter += 1
-
-#     return slug
-
 def generate_unique_slug(instance, value, slug_field="slug"):
     ModelClass = instance.__class__
 
@@ -173,8 +153,8 @@ class Food_items(models.Model):
 
 class Other_items(models.Model):
     image = models.ImageField(
-        default="public_image/items/default_image.jpg",
-        upload_to="public_image/items/actual_items/other",
+        default="items/default_image.jpg",
+        upload_to="items/actual_items/other",
     )
     brand = models.CharField(blank=True, max_length=512)
     title = models.CharField(blank=False, max_length=512)
@@ -214,6 +194,11 @@ class Other_items(models.Model):
 
 class Family(models.Model):
     name = models.CharField(blank=False, max_length=512)
+
+    def save(self, *args, **kwargs):
+        if self.name:
+            self.name = self.name.title()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.name}, has {self.members.count()} members"

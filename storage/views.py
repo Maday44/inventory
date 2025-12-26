@@ -109,6 +109,7 @@ def logout(request):
 def no_account(request):
     return render(request, "storage/no_account.html")
 
+
 # remove "@login_required" when auth0 is working
 @login_required
 @permission_required("storage.add_fooditems", raise_exception=True)
@@ -142,9 +143,8 @@ def add_other_items(request):
     # Render a dedicated 'add food' template (not food_detail)
     return render(request, "storage/add_other.html", {"form": form})
 
-# remove?
+# dashboad, add weather, location etc
 @login_required
-# home page: show all items in the user's family
 def view_all_items(request):
     user_family = request.user.profile.family
     food_items = Food_items.objects.filter(
@@ -152,7 +152,8 @@ def view_all_items(request):
     ).order_by("exp_date")
     other_items = Other_items.objects.filter(family=user_family)
     return render(
-        request, "storage/home.html", {"foods": food_items, "others": other_items}
+        request, "storage/home.html", {"foods": food_items, "others": other_items,
+                                       "family_name": request.user.profile.family.name}
     )
 
 

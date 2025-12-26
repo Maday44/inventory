@@ -12,6 +12,7 @@
   const allOtherUrl = "{% url 'all_other_items' %}";
   const foodItemsApiUrl = "{% url 'food-items-list' %}";
   const otherItemsApiUrl = "{% url 'other-items-list' %}";
+  const familyName = "{{ family_name }}";
 </script>
 
 
@@ -206,7 +207,7 @@
   // Home Page
   const HomePage = () => (
     <div>
-      <h1 className="my-4 text-center">Welcome to Family Dashboard</h1>
+      <h1 className="my-4 text-center">{familyName}'s Dashboard</h1>
       <FoodItemsPad />
       <OtherItemsPad />
     </div>

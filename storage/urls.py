@@ -23,6 +23,8 @@ urlpatterns = [
     
     # cateegories 
     path("categories/", views.category_list, name="category"),
+    path("categories/delete/<int:pk>/", views.delete_category, name="delete_category"),
+
     # exp
     # path("expiry/manage/<int:item_id>/", views.manage_expiry, name="manage_expiry"),
     path("expiry/delete/<int:pk>/", views.delete_expiry, name="delete_expiry"),
