@@ -60,5 +60,8 @@ urlpatterns = [
     path("family/members/", views.all_members, name="members"),
     path("family/edit/<int:member_id>/", views.edit_member_view, name="edit_member"),
 
+    #settings
+    path("settings/", views.settings, name="settings"),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

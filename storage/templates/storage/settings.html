@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}User Settings{% endblock %}
+
+{% block content %}
+{% include "storage/navbar.html" %}
+<div class="container py-5">
+  <h1 class="mb-4">Settings</h1>
+
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Theme -->
+    <div class="mb-3">
+      <label class="form-label fw-bold">Theme</label>
+      <select name="theme" class="form-select">
+        <option value="light" {% if user.profile.theme == 'light' %}selected{% endif %}>Light</option>
+        <option value="dark" {% if user.profile.theme == 'dark' %}selected{% endif %}>Dark</option>
+      </select>
+    </div>
+
+    <!-- Profile Picture -->
+    <div class="mb-3">
+      <label class="form-label fw-bold">Profile Picture</label>
+      <input type="file" name="profile_pic" class="form-control">
+      {% if user.profile.profile_pic %}
+        <img src="{{ user.profile.profile_pic.url }}" alt="Profile Picture" class="mt-2" style="height:80px;width:80px;border-radius:50%;">
+      {% endif %}
+    </div>
+
+    <!-- Notifications -->
+    <div class="mb-3 form-check">
+      <input type="checkbox" name="notifications" class="form-check-input" id="notificationsCheck" {% if user.profile.notifications %}checked{% endif %}>
+      <label class="form-check-label" for="notificationsCheck">Enable Notifications</label>
+    </div>
+
+    <!-- Font Size / Letter Spacing -->
+    <div class="mb-3">
+      <label class="form-label fw-bold">Font Size</label>
+      <input type="range" name="font_size" min="12" max="24" value="{{ user.profile.font_size }}" class="form-range">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label fw-bold">Letter Spacing</label>
+      <input type="range" name="letter_spacing" min="0" max="5" step="0.1" value="{{ user.profile.letter_spacing }}" class="form-range">
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
+  </form>
+</div>
+
+{% endblock %}

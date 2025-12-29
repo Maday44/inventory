@@ -1,0 +1,16 @@
+{% load static %}
+{% load i18n %}
+
+<section class="container py-4 dashboard">
+
+  <header class="dashboard-header text-center mb-5">
+    <h1 class="">{{ family_name }}'s Dashboard</h1>
+  </header>
+
+  <div class="dashboard-grid">
+    {% block dashboard_widgets %}
+    {# Widgets will be inserted here #}
+    {% endblock %}
+  </div>
+
+</section>

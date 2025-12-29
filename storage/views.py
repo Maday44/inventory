@@ -573,3 +573,23 @@ def send_mail_shopping(request, slug):
         "message_body": message_body,
         "result": result,
     })
+
+# settings
+# make the stting page work
+@login_required
+def settings(request):
+    profile = request.user.profile
+
+    if request.method == "POST":
+        profile.theme = request.POST.get("theme", "light")
+        profile.notifications = bool(request.POST.get("notifications"))
+        profile.font_size = int(request.POST.get("font_size", 16))
+        profile.letter_spacing = float(request.POST.get("letter_spacing", 0))
+
+        if "profile_pic" in request.FILES:
+            profile.profile_pic = request.FILES["profile_pic"]
+
+        profile.save()
+        messages.success(request, "Settings updated!")
+
+    return render(request, "storage/settings.html")

@@ -3,6 +3,7 @@
 
 {% block content %}
 {% include "storage/navbar.html" %}
+{% include "storage/dashboard_layout.html" %}
 <div class="container py-4">
   <div id="root"></div>
 </div>
@@ -153,7 +154,6 @@
   // Home Page
   const HomePage = () => (
     <div>
-      <h1 className="my-4 text-center">{familyName}'s Dashboard</h1>
       <FoodItemsPad />
     </div>
   );
