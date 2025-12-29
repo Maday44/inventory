@@ -404,7 +404,10 @@ def assign_permissions(sender, instance, created, **kwargs):
         codenames = [
             "add_fooditems", "change_fooditems", "delete_fooditems", "view_fooditems",
             "add_otheritems", "change_otheritems", "delete_otheritems", "view_otheritems",
-            "add_shoppinglist",
+            "add_shoppinglist", "view_profiledetail","edit_members","change_category",
+            "change_expired", "edit_shoppinglist", "delete_shoppinglist", "edit_shoppinglist",
+            "delete_shoppinglist", "email",
+    
         ]
         perms = Permission.objects.filter(
             content_type__in=[food_type, other_type, shoppinglist_type],

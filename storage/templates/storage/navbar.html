@@ -30,16 +30,12 @@
       </div>
     </li>
 
-
-
-    
-
   </ul>
 
   <div class="col-md-3 text-end px-4">
     {% if user.is_authenticated %}
       <span class="me-3 text-secondary">
-        <a href="{% url 'profile_detail' user.id %}" class="text-decoration-none text-dark">
+        <a href="{% url 'my_profile' %}" class="text-decoration-none text-dark">
           {{ user.profile.display_name }} 
           ({{ user.profile.get_role_display }})
         </a>

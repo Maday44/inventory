@@ -1,5 +1,4 @@
 from django.contrib.auth.decorators import login_required, permission_required
-from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Food_items, Other_items, Profile
 from django.contrib.auth import logout
@@ -109,6 +108,15 @@ def logout(request):
 def no_account(request):
     return render(request, "storage/no_account.html")
 
+# change
+@login_required
+def custom_logout(request):
+    if request.method == "POST":
+        logout(request)
+        return render(request, "logout_thanks.html")  # thank-you page
+    else:
+        return redirect("/")  # redirect GET requests away
+
 
 # remove "@login_required" when auth0 is working
 @login_required
@@ -134,13 +142,12 @@ def add_other_items(request):
         form = OtherForm(request.POST, request.FILES)
         if form.is_valid():
             other = form.save(commit=False)
-            other.family = request.user.profile.family  # assign user's family
+            other.family = request.user.profile.family 
             other.save()
-            return redirect("all_other_items")  # redirect to food list
+            return redirect("all_other_items") 
     else:
         form = OtherForm()
 
-    # Render a dedicated 'add food' template (not food_detail)
     return render(request, "storage/add_other.html", {"form": form})
 
 # dashboad, add weather, location etc
@@ -157,16 +164,14 @@ def view_all_items(request):
     )
 
 
-# see all the food in user's family
 @login_required
 def all_food(request):
-    return render(request,"storage/allFoodPage.html")
+    return render(request,"storage/allFoodPage.html",{"family_name": request.user.profile.family.name})
 
 
-# see all other items in user's family
 @login_required
 def all_other(request):
-    return render(request, "storage/allOtherPage.html")
+    return render(request, "storage/allOtherPage.html",{"family_name": request.user.profile.family.name})
 
 
 @login_required
@@ -190,9 +195,9 @@ def choose_add_food(request):
 def choose_add_other(request):
     return render(request, "storage/choose_add_other.html")
 
-
+# cant have @ gerneal permissions
 @login_required
-def profile_detail(request, user_id=None):
+def profile_detail(request, id=None):
     """
     Show a user's profile:
     - Owners can view all profiles
@@ -201,10 +206,10 @@ def profile_detail(request, user_id=None):
     """
     current_user_profile = request.user.profile
 
-    if user_id is None:
+    if id is None:
         profile = current_user_profile
     else:
-        profile = get_object_or_404(Profile, user__id=user_id)
+        profile = get_object_or_404(Profile, id=id)
 
         if current_user_profile.role == Profile.Role.OWNER:
             pass
@@ -217,10 +222,9 @@ def profile_detail(request, user_id=None):
 
     return render(request, "storage/profile.html", {"profile": profile})
 
-
 @login_required
 def edit_profile(request, id):
-    profile = get_object_or_404(Profile, id=id)
+    profile = get_object_or_404(Profile, id)
 
     if request.user != profile.user and request.user.profile.role != Profile.Role.OWNER:
         return redirect("profile_detail", id=request.user.id)
@@ -236,23 +240,11 @@ def edit_profile(request, id):
 
     return render(request, "storage/edit_profile.html", {"profile": profile})
 
-# change
+# start premisions edit
 @login_required
-def custom_logout(request):
-    if request.method == "POST":
-        logout(request)
-        return render(request, "logout_thanks.html")  # thank-you page
-    else:
-        return redirect("/")  # redirect GET requests away
-
-# here delete like shopiing list
-# dlete comment later
-@login_required
+@permission_required("storage.delete_fooditems", raise_exception=True)
 def food_item_delete(request, slug):
     food = get_object_or_404(Food_items, slug=slug)
-    if request.user.profile.role != Profile.Role.OWNER and Profile.Role.ADMIN:
-        return HttpResponseForbidden("Access Denied")
-
     if request.method == "POST":
         food.delete()
         return redirect(f"{reverse('all_food')}?success=1")
@@ -261,11 +253,9 @@ def food_item_delete(request, slug):
 
 
 @login_required
+@permission_required("storage.delete_otheritems", raise_exception=True)
 def other_item_delete(request, slug):
     other = get_object_or_404(Other_items, slug=slug)
-    if request.user.profile.role != Profile.Role.OWNER and Profile.Role.ADMIN:
-        return HttpResponseForbidden("Access Denied")
-
     if request.method == "POST":
         other.delete()
         return redirect(f"{reverse('all_other_items')}?success=1")
@@ -279,7 +269,7 @@ def food_edit(request, slug):
     food = get_object_or_404(Food_items, slug=slug)
 
     if request.user.profile.role != Profile.Role.OWNER and Profile.Role.ADMIN:
-        return HttpResponseForbidden("Access Denied")
+        return render(request, "403.html", status=403)
 
     if request.method == "POST":
         form = FoodForm(request.POST, request.FILES, instance=food)
@@ -300,7 +290,7 @@ def other_edit(request, slug):
     other = get_object_or_404(Other_items, slug=slug)
 
     if request.user.profile.role != Profile.Role.OWNER and Profile.Role.ADMIN:
-        return HttpResponseForbidden("Access Denied")
+        return render(request, "403.html", status=403)
 
     if request.method == "POST":
         form = OtherForm(request.POST, request.FILES, instance=other)
@@ -320,16 +310,11 @@ def other_edit(request, slug):
 def all_members(request):
     family = request.user.profile.family
     members = family.members.select_related("user").all()
-    return render(
-        request, "storage/members.html", {"family": family, "members": members}
-    )
-
-@login_required
-def member_detail(request):
-    pass
+    return render(request, "storage/members.html", {"family": family, "members": members})
 
 
 @login_required
+@permission_required("storage.edit_members", raise_exception=True)
 def edit_member_view(request, member_id):
     member = get_object_or_404(
         Profile, id=member_id, family=request.user.profile.family
@@ -337,12 +322,8 @@ def edit_member_view(request, member_id):
 
     if request.method == "POST":
         new_role = request.POST.get("role")
-        if request.user.profile.role in [
-            "owner",
-            "admin",
-        ]:  # only admins/owners can edit
-            member.role = new_role
-            member.save()
+        member.role = new_role
+        member.save()
         return redirect("family_members")
 
     return render(request, "storage/edit_member.html", {"member": member})
@@ -371,6 +352,7 @@ def category_list(request):
     return render(request, "storage/category.html", context)
 
 @login_required
+@permission_required("storage.change_category", raise_exception=True)
 def delete_category(request, pk):
     category = get_object_or_404(Category, pk=pk, family=request.user.profile.family)
     if category.is_default:
@@ -404,6 +386,7 @@ def manage_expiry(request, item_id):
     )
 
 @login_required
+@permission_required("storage.change_expired", raise_exception=True)
 def delete_expiry(request, pk):
     expiry = get_object_or_404(
         ItemExpiry, pk=pk, item__family=request.user.profile.family
@@ -414,6 +397,7 @@ def delete_expiry(request, pk):
     return redirect("manage_expiry", item_id=expiry.item.id)
 
 @login_required
+@permission_required("storage.change_expired", raise_exception=True)
 def delete_item(request, pk):
     item = get_object_or_404(Food_items, pk=pk, family=request.user.profile.family)
     item.is_active = False
@@ -423,6 +407,7 @@ def delete_item(request, pk):
     return redirect("all_food")
 
 @login_required
+@permission_required("storage.change_expired", raise_exception=True)
 def restore_item(request, pk):
     item = get_object_or_404(
         Food_items, pk=pk, family=request.user.profile.family, is_active=False
@@ -483,13 +468,10 @@ def add_shopping_list(request):
     return render(request, "storage/add_shopping_list.html", {"form": form})
 
 
-
+@login_required
+@permission_required("storage.edit_shoppinglist", raise_exception=True)
 def edit_shopping_list(request, slug):
     shopping_list = get_object_or_404(ShoppingList, slug=slug)
-
-    if request.user.profile.role not in [Profile.Role.OWNER, Profile.Role.ADMIN]:
-        return HttpResponseForbidden("Access Denied")
-
     if request.method == "POST":
         form = ShoppingListForm(request.POST, request.FILES, instance=shopping_list)
         if form.is_valid():
@@ -504,11 +486,10 @@ def edit_shopping_list(request, slug):
         {"form": form, "shopping_list": shopping_list},
     )
 
+@login_required
+@permission_required("storage.delete_shoppinglist", raise_exception=True)
 def delete_shopping_list(request, slug):
     shopping_list = get_object_or_404(ShoppingList, slug=slug)
-    if request.user.profile.role != Profile.Role.OWNER and Profile.Role.ADMIN:
-        return HttpResponseForbidden("Access Denied")
-
     if request.method == "POST":
         shopping_list.delete()
         return redirect(f"{reverse('all_shopping_list')}?success=1")
@@ -517,7 +498,8 @@ def delete_shopping_list(request, slug):
         request, "storage/confirm_delete.html", {"shopping_list": shopping_list}
     )
 
-
+# may add feturte that admin can approve and chnage premissions
+@login_required
 def add_shopping_item(request, slug):
     shop_list = get_object_or_404(ShoppingList, slug=slug)
     if request.method == "POST":
@@ -535,7 +517,8 @@ def add_shopping_item(request, slug):
         request, "storage/addShopItem.html", {"form": form, "shop_list": shop_list}
     )
 
-
+@login_required
+@permission_required("storage.edit_shoppinglist", raise_exception=True)
 def edit_shopping_item(request, slug):
     item = get_object_or_404(Shopitems, slug=slug)
     if request.method == "POST":
@@ -547,23 +530,22 @@ def edit_shopping_item(request, slug):
         form = ShoppingItemForm(instance=item)
     return render(request, "storage/addShopItem.html", {"form": form, "item": item})
 
-
+@login_required
+@permission_required("storage.delete_shoppinglist", raise_exception=True)
 def delete_shopping_item(request, slug):
     item = get_object_or_404(Shopitems, slug=slug)
     slug = item.shopping_list.slug
     item.delete()
     return redirect("view_shopping_list", slug=slug)
 
-#send email shopping list
+@login_required
+@permission_required("storage.email", raise_exception=True)
 def send_mail_shopping(request, slug):
-    # Get the shopping list
     shopping_list = get_object_or_404(ShoppingList, slug=slug)
     
-    # Get all family members
     family_members = shopping_list.family.members.all()
     recipient_emails = [member.user.email for member in family_members if member.user.email]
 
-    # Build the shopping list message
     message_lines = [f"Shopping List: {shopping_list.title}", f"Category: {shopping_list.category}", "", "Items:"]
     for item in shopping_list.items.all():
         item_name = item.item_name or (item.food_item.title if item.food_item else item.other_item.title)
@@ -571,7 +553,6 @@ def send_mail_shopping(request, slug):
 
     message_body = "\n".join(message_lines)
 
-    # Send email on POST request
     result = None
     if request.method == "POST":
         subject = f"Shopping List: {shopping_list.title}"

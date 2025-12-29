@@ -4,12 +4,14 @@
 {% include "storage/navbar.html" %}
 
 <div class="container mt-4">
-  <h2>{{ family.name }} — Members</h2>
+  <h2>{{ family.name }}'s Members</h2>
   <div class="row">
     {% for member in members %}
       <div class="col-md-4 mb-3">
         <div class="card text-center shadow-sm">
+          <a href="{% url 'profile_detail' member.id%}">
           <img src="{{ member.profile_pic.url }}" alt="{{ member.display_name }}" class="rounded-circle mx-auto mt-3" width="100" height="100">
+          </a>
           <div class="card-body">
             <h5 class="card-title">{{ member.display_name }}</h5>
             <p class="card-text">Role: <strong>{{ member.get_role_display }}</strong></p>
