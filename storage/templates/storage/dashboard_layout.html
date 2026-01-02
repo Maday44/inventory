@@ -1,16 +1,156 @@
 {% load static %}
 {% load i18n %}
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ family_name }} Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+  <style>
+    body {
+      transition: background 0.3s, color 0.3s;
+    }
+
+    [data-theme="dark"] {
+      background-color: #121212;
+      color: #ffffff;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .dashboard-widget {
+      background: var(--bs-body-bg);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      min-height: 150px;
+    }
+
+    [data-theme="dark"] .dashboard-widget {
+      background: #1f1f1f;
+    }
+
+    .widget-title {
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+  </style>
+</head>
+
+<body
+  data-theme="{{ request.user.profile.theme|default:'light' }}"
+  style="
+    font-size: {{ request.user.profile.font_size|default:16 }}px;
+    letter-spacing: {{ request.user.profile.letter_spacing|default:0 }}px;
+  "
+>
+
 <section class="container py-4 dashboard">
 
   <header class="dashboard-header text-center mb-5">
-    <h1 class="">{{ family_name }}'s Dashboard</h1>
+    <h1>{{ family_name }}'s Dashboard</h1>
   </header>
 
   <div class="dashboard-grid">
-    {% block dashboard_widgets %}
-    {# Widgets will be inserted here #}
-    {% endblock %}
+
+    <!-- Date & Time -->
+    <div class="dashboard-widget">
+      <h5 class="widget-title">Date & Time</h5>
+      <p id="current-date"></p>
+      <p id="current-time"></p>
+      <p id="current-season"></p>
+    </div>
+
+    <!-- Weather -->
+    <div class="dashboard-widget" id="weather-widget">
+      <h5 class="widget-title">Weather</h5>
+      <p id="weather-location">Loading...</p>
+      <p id="weather-temp"></p>
+      <p id="weather-desc"></p>
+    </div>
+
   </div>
 
 </section>
+
+<!-- JS -->
+<script>
+  /* =======================
+     DATE, TIME & SEASON
+  ======================== */
+
+  function getSeason(month) {
+    if (month <= 1 || month === 11) return "Winter ❄️";
+    if (month <= 4) return "Spring 🌱";
+    if (month <= 7) return "Summer ☀️";
+    return "Autumn 🍂";
+  }
+
+  function updateDateTime() {
+    const now = new Date();
+
+    document.getElementById("current-date").textContent =
+      now.toLocaleDateString(undefined, {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
+
+    document.getElementById("current-time").textContent =
+      now.toLocaleTimeString();
+
+    document.getElementById("current-season").textContent =
+      "Season: " + getSeason(now.getMonth());
+  }
+
+  updateDateTime();
+  setInterval(updateDateTime, 1000);
+
+
+  /* =======================
+       WEATHER API
+  ======================== */
+
+  const WEATHER_API_KEY = "1f7d3901f1370f7ae8e16a290290a32d";
+
+  function loadWeather(lat, lon) {
+    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${WEATHER_API_KEY}`)
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("weather-location").textContent =
+          `${data.name}, ${data.sys.country}`;
+
+        document.getElementById("weather-temp").textContent =
+          `🌡️ ${Math.round(data.main.temp)}°C`;
+
+        document.getElementById("weather-desc").textContent =
+          `☁️ ${data.weather[0].description}`;
+      })
+      .catch(() => {
+        document.getElementById("weather-widget").innerHTML =
+          "<p>Unable to load weather data</p>";
+      });
+  }
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => loadWeather(pos.coords.latitude, pos.coords.longitude),
+      () => document.getElementById("weather-location").textContent = "Location access denied"
+    );
+  } else {
+    document.getElementById("weather-location").textContent = "Geolocation not supported";
+  }
+</script>
+
+</body>
+</html>
