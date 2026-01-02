@@ -48,7 +48,7 @@ urlpatterns = [
     path("shopping_lists/<slug:slug>/edit/",views.edit_shopping_list,name="edit_shopping_list"),
     path("shopping_lists/<slug:slug>/delete/",views.delete_shopping_list,name="delete_shopping_list"),
     path("shopping_lists/<slug:slug>/add_item/",views.add_shopping_item,name="add_shopping_item"),
-    path("shopping_lists/<slug:slug>/send-email/",views.send_mail_shopping,name="send_shopping_email"),
+    path("shopping_lists/<slug:slug>/send_email/",views.send_mail_shopping,name="send_shopping_email"),
     path("shop_item/<slug:slug>/edit/",views.edit_shopping_item,name="edit_shopping_item"),
     path("shop_item/<slug:slug>/delete/",views.delete_shopping_item,name="delete_shopping_item"),
 
@@ -61,7 +61,10 @@ urlpatterns = [
     path("family/edit/<int:member_id>/", views.edit_member_view, name="edit_member"),
 
     #settings
-    path("settings/", views.settings, name="settings"),
+    path("settings/", views.user_settings, name="settings"),
+    path("settings/change_password/", views.change_password, name="change_password"),
+    path("settings/delete_account/", views.delete_account, name="delete_account"),
+
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

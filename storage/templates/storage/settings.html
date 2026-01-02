@@ -3,49 +3,147 @@
 
 {% block content %}
 {% include "storage/navbar.html" %}
-<div class="container py-5">
+
+<div class="container py-5" style="max-width: 900px;">
   <h1 class="mb-4">Settings</h1>
 
-  <form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
 
-    <!-- Theme -->
-    <div class="mb-3">
-      <label class="form-label fw-bold">Theme</label>
-      <select name="theme" class="form-select">
-        <option value="light" {% if user.profile.theme == 'light' %}selected{% endif %}>Light</option>
-        <option value="dark" {% if user.profile.theme == 'dark' %}selected{% endif %}>Dark</option>
-      </select>
-    </div>
+  <!-- ===================== -->
+  <!-- Appearance Settings -->
+  <!-- ===================== -->
+  <section class="mb-5">
+    <h4 class="mb-3">Appearance</h4>
 
-    <!-- Profile Picture -->
-    <div class="mb-3">
-      <label class="form-label fw-bold">Profile Picture</label>
-      <input type="file" name="profile_pic" class="form-control">
-      {% if user.profile.profile_pic %}
-        <img src="{{ user.profile.profile_pic.url }}" alt="Profile Picture" class="mt-2" style="height:80px;width:80px;border-radius:50%;">
-      {% endif %}
-    </div>
+    <form method="POST">
+      {% csrf_token %}
 
-    <!-- Notifications -->
-    <div class="mb-3 form-check">
-      <input type="checkbox" name="notifications" class="form-check-input" id="notificationsCheck" {% if user.profile.notifications %}checked{% endif %}>
-      <label class="form-check-label" for="notificationsCheck">Enable Notifications</label>
-    </div>
+      <!-- Theme -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Theme</label>
+        <select name="theme" class="form-select">
+          <option value="light" {% if profile.theme == "light" %}selected{% endif %}>Light</option>
+          <option value="dark" {% if profile.theme == "dark" %}selected{% endif %}>Dark</option>
+          <option value="system" {% if profile.theme == "system" %}selected{% endif %}>System</option>
+        </select>
+      </div>
 
-    <!-- Font Size / Letter Spacing -->
-    <div class="mb-3">
-      <label class="form-label fw-bold">Font Size</label>
-      <input type="range" name="font_size" min="12" max="24" value="{{ user.profile.font_size }}" class="form-range">
-    </div>
+      <!-- Font Size -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">
+          Font Size ({{ profile.font_size }}px)
+        </label>
+        <input
+          type="range"
+          name="font_size"
+          min="12"
+          max="24"
+          value="{{ profile.font_size }}"
+          class="form-range"
+        >
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label fw-bold">Letter Spacing</label>
-      <input type="range" name="letter_spacing" min="0" max="5" step="0.1" value="{{ user.profile.letter_spacing }}" class="form-range">
-    </div>
+      <!-- Letter Spacing -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">
+          Letter Spacing ({{ profile.letter_spacing }}px)
+        </label>
+        <input
+          type="range"
+          name="letter_spacing"
+          min="0"
+          max="5"
+          step="0.1"
+          value="{{ profile.letter_spacing }}"
+          class="form-range"
+        >
+      </div>
 
-    <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
-  </form>
+      <button name="save_appearance" class="btn btn-primary">
+        Save Appearance
+      </button>
+    </form>
+  </section>
+
+  <hr>
+
+  <section class="mb-5">
+    <h4 class="mb-3">Notifications</h4>
+
+    <form method="POST">
+      {% csrf_token %}
+      <div class="form-check mb-3">
+        <input
+          type="checkbox"
+          name="notifications"
+          class="form-check-input"
+          id="notificationsCheck"
+          {% if profile.notifications_enabled %}checked{% endif %}
+        >
+        <label class="form-check-label" for="notificationsCheck">
+          Enable notifications
+        </label>
+      </div>
+
+      <button name="save_notifications" class="btn btn-primary">
+        Save Notifications
+      </button>
+    </form>
+  </section>
+
+  <hr>
+
+  <section class="mb-5">
+    <h4 class="mb-3">Account Security</h4>
+
+    <ul class="list-group">
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        Change Password
+        <a href="{% url 'change_password' %}" class="btn btn-sm btn-outline-primary">
+          Change
+        </a>
+
+      </li>
+
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        Update Email
+        <a href="#" class="btn btn-sm btn-outline-secondary disabled">
+          Coming Soon
+        </a>
+      </li>
+
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        Two-Factor Authentication (2FA)
+        <a href="#" class="btn btn-sm btn-outline-secondary disabled">
+          Coming Soon
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <hr>
+
+  <section class="mb-5">
+    <h4 class="text-danger mb-3">Danger Zone</h4>
+
+    <form method="POST">
+      {% csrf_token %}
+      <p class="text-muted">
+        Deleting your account is permanent and cannot be undone.
+      </p>
+
+
+        <a href="{% url 'delete_account' %}" class="btn btn-sm btn-outline-danger">
+          Delete Account
+        </a>
+
+    </form>
+  </section>
 </div>
+
 
 {% endblock %}

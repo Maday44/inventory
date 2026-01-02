@@ -42,13 +42,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "storage",
     "data_wizard",
     "data_wizard.sources",
     "rest_framework",
     "corsheaders",
     "crispy_forms",
     "crispy_bootstrap5",
+    "storage.apps.StorageConfig",
 ]
 
 REST_FRAMEWORK = {"DEFAULT_PAGINATION_CLASS": None, "PAGE_SIZE": 10}

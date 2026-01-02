@@ -1,8 +1,7 @@
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Food_items, Other_items, Profile
-from django.contrib.auth import logout
-from django.http import HttpResponseForbidden, HttpResponse
+from django.contrib.auth import logout, update_session_auth_hash
 from authlib.integrations.django_client import OAuth
 from django.contrib.auth.decorators import login_required, permission_required
 from .forms import *
@@ -13,7 +12,7 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 from urllib.parse import quote_plus, urlencode
-import json
+from django.contrib.auth.forms import PasswordChangeForm
 
 oauth = OAuth()
 
@@ -575,21 +574,97 @@ def send_mail_shopping(request, slug):
     })
 
 # settings
-# make the stting page work
 @login_required
-def settings(request):
+def user_settings(request):
     profile = request.user.profile
 
     if request.method == "POST":
-        profile.theme = request.POST.get("theme", "light")
-        profile.notifications = bool(request.POST.get("notifications"))
-        profile.font_size = int(request.POST.get("font_size", 16))
-        profile.letter_spacing = float(request.POST.get("letter_spacing", 0))
 
-        if "profile_pic" in request.FILES:
-            profile.profile_pic = request.FILES["profile_pic"]
+        if "save_appearance" in request.POST:
+            profile.theme = request.POST.get("theme", profile.theme)
+            profile.font_size = int(request.POST.get("font_size", profile.font_size))
+            profile.letter_spacing = float(request.POST.get("letter_spacing", profile.letter_spacing))
+            profile.save()
+            messages.success(request, "Appearance updated")
 
-        profile.save()
-        messages.success(request, "Settings updated!")
+        elif "save_notifications" in request.POST:
+            profile.notifications_enabled = "notifications" in request.POST
+            profile.save()
+            messages.success(request, "Notifications updated")
 
-    return render(request, "storage/settings.html")
+        return redirect("settings")
+
+    return render(request, "storage/settings.html", {"profile": profile})
+
+# email notificatyion to work when this happens
+@login_required
+def change_password(request):
+    result = None
+
+    if request.method == "POST":
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+
+            subject = "Security alert: Password changed"
+            message = (
+                f"Hi {user.username},\n\n"
+                "Your password was successfully changed.\n"
+                "If this wasn't you, please contact support immediately."
+            )
+
+            try:
+                send_mail(
+                    subject,
+                    message,
+                    settings.EMAIL_HOST_USER,
+                    [user.email],
+                )
+                result = "Password changed and email notification sent."
+            except Exception as e:
+                result = f"Password changed, but email failed: {e}"
+
+            messages.success(request, result)
+            return redirect("settings")
+    else:
+        form = PasswordChangeForm(request.user)
+
+    return render(request, "storage/change_password.html", {
+        "form": form,
+        "result": result,
+    })
+
+@login_required
+def delete_account(request):
+    result = None
+
+    if request.method == "POST":
+        user = request.user
+        email = user.email
+        username = user.username
+
+        logout(request)
+
+        try:
+            send_mail(
+                subject="Account deletion confirmation",
+                message=(
+                    f"Hi {username},\n\n"
+                    "Your account has been permanently deleted.\n"
+                    "If this was a mistake, please contact support."
+                ),
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[email],
+            )
+            result = "Account deleted and confirmation email sent."
+        except Exception as e:
+            result = f"Account deleted, but email failed: {e}"
+
+        user.delete()
+        messages.success(request, result)
+        return redirect("login")
+
+    return render(request, "storage/confirm_account_deletion.html", {
+        "result": result
+    })

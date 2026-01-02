@@ -209,6 +209,12 @@ class Profile(models.Model):
         OWNER = "owner", "Owner"
         ADMIN = "admin", "Admin"
         USER = "user", "User"
+    
+    THEME_COLOUR = [
+        ("light", "Light"),
+        ("dark", "Dark"),
+        ("system", "System"),
+    ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     profile_pic = models.ImageField(
@@ -218,6 +224,13 @@ class Profile(models.Model):
     family = models.ForeignKey("Family", on_delete=models.CASCADE, related_name="members", null=True)
     display_name = models.CharField(max_length=512)
     role = models.CharField(max_length=10, choices=Role.choices)
+
+    theme = models.CharField(max_length=10,choices=THEME_COLOUR,default="light")
+    notifications_enabled = models.BooleanField(default=True)
+    font_size = models.PositiveSmallIntegerField(default=16)
+    letter_spacing = models.DecimalField(max_digits=3,decimal_places=1,default=0.0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
 
     def __str__(self):
         return f"{self.display_name} ({self.role})"
