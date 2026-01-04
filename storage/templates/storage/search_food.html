@@ -1,10 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Search Food{% endblock %}
+{% block title %}Search & Add Food{% endblock %}
 
 {% block content %}
 <div class="container py-5" style="max-width: 700px;">
   <h2 class="mb-4">Search Food (Global)</h2>
 
+  <!-- Search bar -->
   <input
     type="text"
     id="food-search"
@@ -13,8 +14,24 @@
     autocomplete="off"
   >
 
-  <div id="search-results" class="list-group"></div>
-</div>
+  <!-- Search results -->
+  <div id="search-results" class="list-group mb-4"></div>
+
+  <!-- Food form -->
+  <h3 class="mt-4 mb-3">Add / Edit Food Item</h3>
+  <form method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+
+  <!-- Hidden fields for category and image -->
+  <input type="hidden" name="category_name" id="id_category_name">
+  <input type="hidden" name="image_url" id="id_image_url">
+
+  <button class="btn btn-primary">Save Food</button>
+</form>
+
+
+<div id="search-results" class="list-group mb-4"></div>
 
 <script>
 const input = document.getElementById("food-search");
@@ -27,22 +44,43 @@ input.addEventListener("input", async () => {
     return;
   }
 
-  const res = await fetch(`/api/search-food/?q=${encodeURIComponent(q)}`);
-  const data = await res.json();
+  try {
+    const res = await fetch(`/api/search-food/?q=${encodeURIComponent(q)}`);
+    const data = await res.json();
 
-  resultsBox.innerHTML = "";
+    resultsBox.innerHTML = "";
 
-  data.results.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "list-group-item";
+    data.results.forEach(item => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "list-group-item list-group-item-action";
 
-    div.innerHTML = `
-      <strong>${item.title || "Unnamed"}</strong><br>
-      <small>${item.brand || ""}</small>
-    `;
+      btn.innerHTML = `
+        <strong>${item.title || "Unnamed"}</strong>
+        <br><small>${item.brand || ""}</small>
+        <br><small class="text-muted">${item.category || ""}</small>
+      `;
 
-    resultsBox.appendChild(div);
-  });
+      btn.addEventListener("click", () => {
+        // Fill main fields
+        document.querySelector("#id_title").value = item.title || "";
+        document.querySelector("#id_brand").value = item.brand || "";
+
+        // Fill hidden fields
+        document.querySelector("#id_category_name").value = item.category || "";
+        document.querySelector("#id_image_url").value = item.image || "";
+
+        resultsBox.innerHTML = ""; // clear results
+      });
+
+      resultsBox.appendChild(btn);
+    });
+  } catch (err) {
+    console.error("Food search failed", err);
+    resultsBox.innerHTML = "<div class='list-group-item text-danger'>Search failed. Try again.</div>";
+  }
 });
 </script>
+
 {% endblock %}
+

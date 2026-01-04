@@ -15,6 +15,8 @@ from urllib.parse import quote_plus, urlencode
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import JsonResponse
 import requests
+from django.core.files.base import ContentFile
+import os
 
 oauth = OAuth()
 
@@ -202,7 +204,49 @@ def choose_add_other(request):
 # search food
 @login_required
 def search_food(request):
-    return render(request, "storage/search_food.html")
+    if request.method == "POST":
+        form = FoodForm(request.POST, request.FILES)
+        if form.is_valid():
+            food = form.save(commit=False)
+            food.family = request.user.profile.family
+
+            # ------------------------------
+            # Handle category automatically
+            # ------------------------------
+            category_name = request.POST.get("category_name", "").strip()
+            if category_name:
+                # Some APIs return comma-separated categories; pick first
+                first_category = category_name.split(",")[0].strip()
+                if first_category:
+                    category_obj, _ = Category.objects.get_or_create(name=first_category.title())
+                    food.category = category_obj
+
+            # ------------------------------
+            # Handle image automatically
+            # ------------------------------
+            image_url = request.POST.get("image_url", "").strip()
+            if image_url:
+                try:
+                    response = requests.get(image_url, timeout=5)
+                    if response.status_code == 200:
+                        # Create a valid filename
+                        ext = os.path.splitext(image_url)[-1].split("?")[0]
+                        if ext.lower() not in [".jpg", ".jpeg", ".png"]:
+                            ext = ".jpg"  # fallback
+                        filename = f"{food.title.replace(' ', '_')}{ext}"
+                        food.image.save(filename, ContentFile(response.content), save=False)
+                except Exception as e:
+                    print("Image download failed:", e)
+
+            food.save()
+            messages.success(request, f"{food.title} added successfully!")
+            return redirect("search_food")
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = FoodForm()
+
+    return render(request, "storage/search_food.html", {"form": form})
 
 @login_required
 def search_openfoodfacts(request):
