@@ -106,6 +106,7 @@ def generate_unique_slug(instance, value, slug_field="slug"):
     return slug
 
 class Food_items(models.Model):
+    barcode = models.CharField(max_length=32, blank=True, null=True)
     image = models.ImageField(
         default="items/default_food.jpg", upload_to="items/actual_items/food"
     )

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Search Food{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 700px;">
+  <h2 class="mb-4">Search Food (Global)</h2>
+
+  <input
+    type="text"
+    id="food-search"
+    class="form-control mb-3"
+    placeholder="Search food (OpenFoodFacts)..."
+    autocomplete="off"
+  >
+
+  <div id="search-results" class="list-group"></div>
+</div>
+
+<script>
+const input = document.getElementById("food-search");
+const resultsBox = document.getElementById("search-results");
+
+input.addEventListener("input", async () => {
+  const q = input.value.trim();
+  if (!q) {
+    resultsBox.innerHTML = "";
+    return;
+  }
+
+  const res = await fetch(`/api/search-food/?q=${encodeURIComponent(q)}`);
+  const data = await res.json();
+
+  resultsBox.innerHTML = "";
+
+  data.results.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "list-group-item";
+
+    div.innerHTML = `
+      <strong>${item.title || "Unnamed"}</strong><br>
+      <small>${item.brand || ""}</small>
+    `;
+
+    resultsBox.appendChild(div);
+  });
+});
+</script>
+{% endblock %}

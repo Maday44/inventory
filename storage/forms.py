@@ -12,6 +12,7 @@ class FoodForm(forms.ModelForm):
             ),
         }
         labels = {
+            "barcode": "Barcode",
             "category": "Category",
             "title": "Name",
             "brand": "Brand",
@@ -70,3 +71,28 @@ class ShoppingItemForm(forms.ModelForm):
     class Meta:
         model = Shopitems
         fields = ["type","food_item","other_item","item_name","quantity","price","purchased"]
+
+
+class EmailChangeForm(forms.Form):
+    new_email = forms.EmailField(label="New email", required=True)
+    password = forms.CharField(
+        label="Current password",
+        widget=forms.PasswordInput,
+        required=True
+    )
+
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def clean_password(self):
+        password = self.cleaned_data["password"]
+        if not self.user.check_password(password):
+            raise forms.ValidationError("Incorrect password.")
+        return password
+
+    def clean_new_email(self):
+        email = self.cleaned_data["new_email"]
+        if email == self.user.email:
+            raise forms.ValidationError("This is already your email.")
+        return email

@@ -17,6 +17,9 @@ urlpatterns = [
     path("food/<slug:slug>/", views.food_detail, name="food-detail"),
     path("add_food/", views.add_food, name="add_food"),
     path("choose_add_food/", views.choose_add_food, name="choose_add_food"),
+    path("search_food/", views.search_food, name="search_food"),
+    #path("searching_food/", views.search_openfoodfacts, name="searching_food"),
+    path("api/search-food/", views.search_openfoodfacts, name="search_food_api"),
     path("food/<slug:slug>/delete", views.food_item_delete, name="food-delete"),
     path("food/<slug:slug>/edit/", views.food_edit, name="food_edit"),
     
@@ -64,6 +67,8 @@ urlpatterns = [
     path("settings/", views.user_settings, name="settings"),
     path("settings/change_password/", views.change_password, name="change_password"),
     path("settings/delete_account/", views.delete_account, name="delete_account"),
+    path("settings/change_email/", views.change_email, name="change_email"),
+
 
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

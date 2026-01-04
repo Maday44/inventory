@@ -13,6 +13,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 from urllib.parse import quote_plus, urlencode
 from django.contrib.auth.forms import PasswordChangeForm
+from django.http import JsonResponse
+import requests
 
 oauth = OAuth()
 
@@ -159,18 +161,21 @@ def view_all_items(request):
     other_items = Other_items.objects.filter(family=user_family)
     return render(
         request, "storage/home.html", {"foods": food_items, "others": other_items,
-                                       "family_name": request.user.profile.family.name}
+                                       "family_name": request.user.profile.family.name,
+                                       "weather_api_key": settings.WEATHER_API_KEY,}
     )
 
 
 @login_required
 def all_food(request):
-    return render(request,"storage/allFoodPage.html",{"family_name": request.user.profile.family.name})
+    return render(request,"storage/allFoodPage.html",{"family_name": request.user.profile.family.name,
+                                                      "weather_api_key": settings.WEATHER_API_KEY,})
 
 
 @login_required
 def all_other(request):
-    return render(request, "storage/allOtherPage.html",{"family_name": request.user.profile.family.name})
+    return render(request, "storage/allOtherPage.html",{"family_name": request.user.profile.family.name,
+                                                        "weather_api_key": settings.WEATHER_API_KEY,})
 
 
 @login_required
@@ -193,6 +198,45 @@ def choose_add_food(request):
 @login_required
 def choose_add_other(request):
     return render(request, "storage/choose_add_other.html")
+
+# search food
+@login_required
+def search_food(request):
+    return render(request, "storage/search_food.html")
+
+@login_required
+def search_openfoodfacts(request):
+    query = request.GET.get("q", "").strip()
+
+    if not query:
+        return JsonResponse({"results": []})
+
+    url = "https://world.openfoodfacts.org/cgi/search.pl"
+    params = {
+        "search_terms": query,
+        "search_simple": 1,
+        "action": "process",
+        "json": 1,
+        "page_size": 10,
+    }
+
+    try:
+        res = requests.get(url, params=params, timeout=5)
+        data = res.json()
+    except Exception:
+        return JsonResponse({"results": []})
+
+    results = []
+    for product in data.get("products", []):
+        results.append({
+            "title": product.get("product_name"),
+            "brand": product.get("brands"),
+            "image": product.get("image_thumb_url"),
+            "barcode": product.get("code"),
+            "category": product.get("categories"),
+        })
+
+    return JsonResponse({"results": results})
 
 # cant have @ gerneal permissions
 @login_required
@@ -668,3 +712,37 @@ def delete_account(request):
     return render(request, "storage/confirm_account_deletion.html", {
         "result": result
     })
+
+
+@login_required
+def change_email(request):
+    user = request.user
+
+    if request.method == "POST":
+        form = EmailChangeForm(user, request.POST)
+        if form.is_valid():
+            new_email = form.cleaned_data["new_email"]
+            old_email = user.email
+
+            user.email = new_email
+            user.save()
+
+            # Email notification
+            send_mail(
+                subject="Email address changed",
+                message=(
+                    f"Hi {user.profile.display_name},\n\n"
+                    f"Your email address was changed from {old_email} to {new_email}.\n"
+                    "If this wasn’t you, please contact support immediately."
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[new_email],
+                fail_silently=True,
+            )
+
+            messages.success(request, "Email updated successfully.")
+            return redirect("settings")
+    else:
+        form = EmailChangeForm(user)
+
+    return render(request, "storage/change_email.html", {"form": form})
