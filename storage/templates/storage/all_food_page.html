@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Family Dashboard{% endblock %}
+
+{% block content %}
+{% include "storage/navbar.html" %}
+{% include "storage/dashboard_layout.html" %}
+
+<div class="container py-5">
+
+  <div class="d-flex justify-content-between align-items-center mb-5">
+
+    <!-- Sort -->
+    <div class="dropdown">
+      <button class="dropbtn">Sort by...</button>
+      <div class="dropdown-content">
+        <a href="?ordering=title">Name (A to Z)</a>
+        <a href="?ordering=-title">Name (Z to A)</a>
+        <a href="?ordering=-price">Price (High to Low)</a>
+        <a href="?ordering=price">Price (Low to High)</a>
+        <a href="?ordering=-quantity">Quantity (High to Low)</a>
+        <a href="?ordering=quantity">Quantity (Low to High)</a>
+        <a href="?ordering=exp_date">Expiry Date</a>
+      </div>
+    </div>
+
+    <h2 class="fw-bold mb-0">
+      <a href="{% url 'all_food' %}" class="nav-link px-3 text-dark">
+        Food Items
+      </a>
+    </h2>
+
+    <!-- Add Button -->
+    {% if profile.role == "admin" or profile.role == "owner" %}
+      <a
+        href="{% url 'choose_add_food' %}"
+        class="btn btn-success px-4 py-2 rounded-4 shadow-sm"
+      >
+        + Add Food
+      </a>
+    {% endif %}
+  </div>
+
+  <!-- Food Grid -->
+  <div
+    class="food-grid"
+    style="
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    "
+  >
+    {% for item in foods %}
+      <a
+        href="{% url 'food_detail' item.slug %}"
+        class="text-decoration-none text-dark"
+      >
+        <div
+          class="card h-100 border-0 shadow-sm rounded-4"
+          style="
+            aspect-ratio: 1 / 1;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+          "
+          onmouseenter="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.15)'"
+          onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'"
+        >
+
+          <img
+            src="{{ item.image.url }}"
+            alt="{{ item.title }}"
+            style="
+              height: 50%;
+              width: 100%;
+              object-fit: cover;
+              border-top-left-radius: 1rem;
+              border-top-right-radius: 1rem;
+            "
+          />
+
+          <div class="card-body d-flex flex-column justify-content-between" style="flex: 1;">
+            <div>
+              <h5 class="card-title fw-semibold mb-2">
+                {{ item.title }}
+              </h5>
+
+              <p class="card-text text-muted mb-1">
+                <strong>Brand:</strong> {{ item.brand|default:"N/A" }}
+              </p>
+
+              <p class="card-text text-muted mb-1">
+                <strong>Quantity:</strong> {{ item.quantity }}
+              </p>
+
+              <!-- Expired Food -->
+              {% if item.exp_date %}
+                {% if item.exp_date < today %}
+                  <p class="card-text mb-0 text-danger">
+                {% else %}
+                  <p class="card-text mb-0 text-muted">
+                {% endif %}
+                  <strong>Expires:</strong> {{ item.exp_date|date:"d M Y" }}
+                </p>
+              {% else %}
+                <p class="card-text mb-0 text-muted">
+                  <strong>Expires:</strong> Unknown
+                </p>
+              {% endif %}
+            </div>
+          </div>
+
+        </div>
+      </a>
+    {% empty %}
+      <p class="text-center mt-5">No item found</p>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

@@ -14,7 +14,7 @@ urlpatterns = [
 
     # food
     path("all_food_items/", views.all_food, name="all_food"),
-    path("food/<slug:slug>/", views.food_detail, name="food-detail"),
+    path("food/<slug:slug>/", views.food_detail, name="food_detail"),
     path("add_food/", views.add_food, name="add_food"),
     path("choose_add_food/", views.choose_add_food, name="choose_add_food"),
     path("search_food/", views.search_food, name="search_food"),
@@ -38,7 +38,7 @@ urlpatterns = [
 
     # other items
     path("all_other_items/", views.all_other, name="all_other_items"),
-    path("other/<slug:slug>/", views.other_detail, name="other-detail"),
+    path("other/<slug:slug>/", views.other_detail, name="other_detail"),
     path("choose_add_other/", views.choose_add_other, name="choose_add_other"),
     path("add_other_items/", views.add_other_items, name="add_other"),
     path("other/<slug:slug>/delete/", views.other_item_delete, name="other-delete"),

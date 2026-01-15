@@ -156,11 +156,10 @@ def add_other_items(request):
 # dashboad, add weather, location etc
 @login_required
 def view_all_items(request):
-    user_family = request.user.profile.family
     food_items = Food_items.objects.filter(
-        family=user_family, is_active=True, exp_date__gte=timezone.now().date()
+        family=request.user.profile.family, is_active=True, exp_date__gte=timezone.now().date()
     ).order_by("exp_date")
-    other_items = Other_items.objects.filter(family=user_family)
+    other_items = Other_items.objects.filter(family=request.user.profile.family)
     return render(
         request, "storage/home.html", {"foods": food_items, "others": other_items,
                                        "family_name": request.user.profile.family.name,
@@ -170,15 +169,39 @@ def view_all_items(request):
 
 @login_required
 def all_food(request):
-    return render(request,"storage/allFoodPage.html",{"family_name": request.user.profile.family.name,
-                                                      "weather_api_key": settings.WEATHER_API_KEY,})
+    food_items = Food_items.objects.filter(
+        family=request.user.profile.family, is_active=True).order_by("exp_date")
+
+    return render(request,"storage/all_food_page.html",{"weather_api_key": settings.WEATHER_API_KEY,
+                                                        "family_name": request.user.profile.family.name,
+                                                        "foods": food_items, "profile":request.user.profile,
+                                                        "today": now().date()})
+
 
 
 @login_required
 def all_other(request):
-    return render(request, "storage/allOtherPage.html",{"family_name": request.user.profile.family.name,
-                                                        "weather_api_key": settings.WEATHER_API_KEY,})
+    other_items = Other_items.objects.filter(family=request.user.profile.family, is_active=True)
+    return render(request, "storage/all_other_page.html",{"family_name": request.user.profile.family.name,
+                                                          "others": other_items, "profile": request.user.profile,
+                                                          "today": now().date(),
+                                                        "weather_api_key": settings.WEATHER_API_KEY})
 
+@login_required
+def all_other_items(request):
+    ordering = request.GET.get("ordering", "title")
+    other_items = Other_items.objects.filter(
+        family=request.user.profile.family,
+        is_active=True
+    ).order_by(ordering)
+
+    context = {
+        "other_items": other_items,
+        "profile": request.user.profile,
+        "today": now().date(),
+        "weather_api_key": settings.WEATHER_API_KEY,
+    }
+    return render(request, "storage/all_other_items.html", context)
 
 @login_required
 def food_detail(request, slug):
@@ -194,15 +217,18 @@ def other_detail(request, slug):
     return render(request, "storage/other_detail.html", {"other": other})
 
 @login_required
+@permission_required("storage.add_fooditems", raise_exception=True)
 def choose_add_food(request):
     return render(request, "storage/choose_add_food.html")
 
 @login_required
+@permission_required("storage.add_otheritems", raise_exception=True)
 def choose_add_other(request):
     return render(request, "storage/choose_add_other.html")
 
 # search food
 @login_required
+@permission_required("storage.add_fooditems", raise_exception=True)
 def search_food(request):
     if request.method == "POST":
         form = FoodForm(request.POST, request.FILES)
@@ -210,9 +236,6 @@ def search_food(request):
             food = form.save(commit=False)
             food.family = request.user.profile.family
 
-            # ------------------------------
-            # Handle category automatically
-            # ------------------------------
             category_name = request.POST.get("category_name", "").strip()
             if category_name:
                 # Some APIs return comma-separated categories; pick first
@@ -221,18 +244,15 @@ def search_food(request):
                     category_obj, _ = Category.objects.get_or_create(name=first_category.title())
                     food.category = category_obj
 
-            # ------------------------------
-            # Handle image automatically
-            # ------------------------------
             image_url = request.POST.get("image_url", "").strip()
             if image_url:
                 try:
                     response = requests.get(image_url, timeout=5)
                     if response.status_code == 200:
-                        # Create a valid filename
+
                         ext = os.path.splitext(image_url)[-1].split("?")[0]
                         if ext.lower() not in [".jpg", ".jpeg", ".png"]:
-                            ext = ".jpg"  # fallback
+                            ext = ".jpg"  
                         filename = f"{food.title.replace(' ', '_')}{ext}"
                         food.image.save(filename, ContentFile(response.content), save=False)
                 except Exception as e:
