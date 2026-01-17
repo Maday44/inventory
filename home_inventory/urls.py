@@ -19,7 +19,7 @@ urlpatterns = [
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     path("datawizard/", include("data_wizard.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
-    path("accounts/", include("django.contrib.auth.urls")),
+    path("accounts/", include("django.contrib.auth.urls")), # test new users, remove later using auth0
 ]
 
 if settings.DEBUG:

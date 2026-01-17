@@ -41,12 +41,13 @@
         </a>
       </span>
 
-      <form action="{% url 'logout' %}" method="post" class="d-inline">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-outline-primary me-2">{% trans 'Logout' %}</button>
+
+      <form method="post" action="{% url 'logouts' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline-primary me-2">Logout</button>
       </form>
     {% else %}
-      <a href="{% url 'login' %}" class="btn btn-outline-primary me-2">{% trans 'Login' %}</a>
+      <a href="{% url 'logins' %}" class="btn btn-outline-primary me-2">{% trans 'Login' %}</a>
     {% endif %}
   </div>
 </header>

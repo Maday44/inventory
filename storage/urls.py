@@ -8,7 +8,7 @@ urlpatterns = [
     # accounts
     path("", views.view_all_items, name="view_all_items"),
     path("login/", views.login, name="logins"),
-    path("logout/", views.logout, name="logout"),
+    path("logout/", views.logout, name="logouts"),
     path("callback/", views.callback, name="callback"),
     path("no_account/", views.no_account, name="no_account"),
 

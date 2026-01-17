@@ -16,6 +16,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.http import JsonResponse
 import requests
 from django.core.files.base import ContentFile
+from django.contrib.auth import login as django_login
 import os
 
 oauth = OAuth()
@@ -30,84 +31,56 @@ oauth.register(
     server_metadata_url=f"https://{settings.AUTH0_DOMAIN}/.well-known/openid-configuration",
 )
 
-def auth0_login_required(view_func):
-    def wrapper(request, *args, **kwargs):
-        if not request.session.get("user"):
-            return redirect("login")
-        return view_func(request, *args, **kwargs)
-    return wrapper
 
-@auth0_login_required
-def view_all_items(request):
-    # ------------------ Check Auth0 session ------------------
-    user = request.session.get("user")
-    if not user:
-        # Not logged in via Auth0 → redirect to login
-        return redirect(reverse("login"))
-
-    # ------------------ Get user info from Auth0 ------------------
-    user_info = user.get("userinfo", {})
-    given_name = user_info.get("given_name", "User")
-    email = user_info.get("email", "")
-
-    # ------------------ Your original logic ------------------
-    try:
-        user_family = request.user.profile.family
-        food_items = Food_items.objects.filter(
-            family=user_family,
-            is_active=True,
-            exp_date__gte=timezone.now().date()
-        ).order_by("exp_date")
-        other_items = Other_items.objects.filter(family=user_family)
-    except Exception:
-        # If user does not have a family/profile
-        food_items = []
-        other_items = []
-
-    # ------------------ Render template ------------------
-    return render(
-        request,
-        "storage/home.html",
-        {
-            "foods": food_items,
-            "others": other_items,
-            "user_info": user_info,  # Auth0 info for welcome message, profile picture
-        },
-    )
-
-
-# ------------------ Login ------------------
 def login(request):
     return oauth.auth0.authorize_redirect(
         request,
         request.build_absolute_uri(reverse("callback"))
     )
 
-# ------------------ Callback ------------------
+
 def callback(request):
     try:
         token = oauth.auth0.authorize_access_token(request)
-        request.session["user"] = token
-        return redirect(reverse("index"))
-    except Exception:
-        # Could not authorize → show "no account" page
+        userinfo = token["userinfo"]
+
+        email = userinfo.get("email")
+        if not email:
+            return redirect(reverse("no_account"))
+
+        email = email.lower()
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return redirect(reverse("no_account"))
+
+        django_login(request, user)  
+        request.session["user"] = userinfo 
+
+        return redirect(reverse("view_all_items"))
+
+    except Exception as e:
+        print("CALLBACK ERROR:", e)
         return redirect(reverse("no_account"))
 
-# ------------------ Logout ------------------
+
 def logout(request):
     request.session.clear()
-    return redirect(
+
+    auth0_logout_url = (
         f"https://{settings.AUTH0_DOMAIN}/v2/logout?"
         + urlencode(
             {
-                "returnTo": request.build_absolute_uri(reverse("index")),
+                "returnTo": request.build_absolute_uri(reverse("view_all_items")),
                 "client_id": settings.AUTH0_CLIENT_ID,
             },
             quote_via=quote_plus,
         )
     )
+    return render(request, "registration/logged_out.html", {"auth0_logout_url": auth0_logout_url})
 
-# ------------------ Optional no account page ------------------
+
 def no_account(request):
     return render(request, "storage/no_account.html")
 
@@ -116,12 +89,11 @@ def no_account(request):
 def custom_logout(request):
     if request.method == "POST":
         logout(request)
-        return render(request, "logout_thanks.html")  # thank-you page
+        return render(request, "logout_thanks.html") 
     else:
-        return redirect("/")  # redirect GET requests away
+        return redirect("/")  
 
 
-# remove "@login_required" when auth0 is working
 @login_required
 @permission_required("storage.add_fooditems", raise_exception=True)
 def add_food(request):
@@ -153,7 +125,7 @@ def add_other_items(request):
 
     return render(request, "storage/add_other.html", {"form": form})
 
-# dashboad, add weather, location etc
+# HOME page
 @login_required
 def view_all_items(request):
     food_items = Food_items.objects.filter(

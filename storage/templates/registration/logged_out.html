@@ -1,14 +1,53 @@
 {% extends "base.html" %}
+
 {% block content %}
+<div id="logout-page">
+    <h1 class="logout-title">You have successfully logged out</h1>
+    <h2 class="logout-message">
+        <a href="{% url 'logins' %}">Login again</a>
+    </h2>
+</div>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logged Out</title>
-</head>
-<body>
-    <h1>You have successfully logged out</h1>
-    <a href="{% url 'login' %}">Login</a>
-</body>
+<style>
 
+#logout-page {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa; /* light background */
+    text-align: center;
+    padding: 2rem;
+    font-family: 'Arial', sans-serif;
+}
+
+.logout-title {
+    font-size: 10vmin;
+    margin-bottom: 1rem;
+    color: #06402B;
+}
+
+
+.logout-message {
+    font-size: 4vmin;
+    color: #1a7f37;
+}
+
+.logout-message a {
+    text-decoration: none;
+    color: #1a7f37;
+    font-weight: bold;
+}
+
+.logout-message a:hover {
+    color: #06402B;
+}
+</style>
+
+<script>
+    setTimeout(function() {
+        window.location.href = "{% url 'logins' %}";
+    }, 6000);
+</script>
 {% endblock %}
