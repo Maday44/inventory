@@ -141,52 +141,35 @@ def view_all_items(request):
 
 @login_required
 def all_food(request):
+    ordering = request.GET.get("ordering", "exp_date")
     food_items = Food_items.objects.filter(
-        family=request.user.profile.family, is_active=True).order_by("exp_date")
+        family=request.user.profile.family, is_active=True).order_by(ordering)
 
-    return render(request,"storage/all_food_page.html",{"weather_api_key": settings.WEATHER_API_KEY,
-                                                        "family_name": request.user.profile.family.name,
-                                                        "foods": food_items, "profile":request.user.profile,
+    return render(request,"storage/all_food_page.html",{"foods": food_items, "profile":request.user.profile,
                                                         "today": now().date()})
 
 
 
 @login_required
 def all_other(request):
-    other_items = Other_items.objects.filter(family=request.user.profile.family, is_active=True)
-    return render(request, "storage/all_other_page.html",{"family_name": request.user.profile.family.name,
-                                                          "others": other_items, "profile": request.user.profile,
-                                                          "today": now().date(),
-                                                        "weather_api_key": settings.WEATHER_API_KEY})
-
-@login_required
-def all_other_items(request):
     ordering = request.GET.get("ordering", "title")
-    other_items = Other_items.objects.filter(
-        family=request.user.profile.family,
-        is_active=True
-    ).order_by(ordering)
+    other_items = Other_items.objects.filter(family=request.user.profile.family, is_active=True).order_by(ordering)
+    return render(request, "storage/all_other_page.html",{"others": other_items, "profile": request.user.profile,
+                                                          "today": now().date(),})
 
-    context = {
-        "other_items": other_items,
-        "profile": request.user.profile,
-        "today": now().date(),
-        "weather_api_key": settings.WEATHER_API_KEY,
-    }
-    return render(request, "storage/all_other_items.html", context)
+
 
 @login_required
 def food_detail(request, slug):
     food = get_object_or_404(Food_items, slug=slug, family=request.user.profile.family)
-    return render(request, "storage/food_detail.html", {"food": food})
-
+    return render(request, "storage/food_detail.html", {"food": food,"profile":request.user.profile})
 
 @login_required
 def other_detail(request, slug):
     other = get_object_or_404(
         Other_items, slug=slug, family=request.user.profile.family
     )
-    return render(request, "storage/other_detail.html", {"other": other})
+    return render(request, "storage/other_detail.html", {"other": other, "profile":request.user.profile})
 
 @login_required
 @permission_required("storage.add_fooditems", raise_exception=True)
