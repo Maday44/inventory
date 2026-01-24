@@ -1,9 +1,11 @@
-from .models import Food_items, Other_items, User, Family
-from .serializers import UserSerializer, FamSerializer, FoodSerializer, OtherSerializer
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
+from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter
+from rest_framework.permissions import IsAuthenticated
+
+from .models import Family, Food_items, Other_items, User
+from .serializers import (FamSerializer, FoodSerializer, OtherSerializer,
+                          UserSerializer)
 
 
 class FoodViewSet(viewsets.ModelViewSet):
@@ -11,7 +13,7 @@ class FoodViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     filter_backends = [OrderingFilter]
-    ordering_fields = ["title", "quantity", "exp_date","price"]
+    ordering_fields = ["title", "quantity", "exp_date", "price"]
     ordering = ["exp_date"]
 
     def get_queryset(self):
@@ -20,6 +22,7 @@ class FoodViewSet(viewsets.ModelViewSet):
             family=user_family,
             is_active=True,
         )
+
 
 class OtherViewSet(viewsets.ModelViewSet):
     serializer_class = OtherSerializer

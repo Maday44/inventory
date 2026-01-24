@@ -10,10 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-from pathlib import Path
 import os
-from dotenv import load_dotenv, find_dotenv
+from pathlib import Path
 
+from dotenv import find_dotenv, load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -155,7 +155,6 @@ LOGIN_REDIRECT_URL = "view_all_items"
 LOGOUT_REDIRECT_URL = "/"
 
 
-
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
@@ -187,8 +186,7 @@ Q_CLUSTER = {
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
-
-# sending emails 
+# sending emails
 load_dotenv()
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
 EMAIL_HOST = os.getenv("EMAIL_HOST")
@@ -197,7 +195,7 @@ EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
-#api keys
+# api keys
 WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 
 

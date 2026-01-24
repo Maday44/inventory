@@ -1,23 +1,24 @@
-from django.contrib.auth.decorators import login_required, permission_required
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Food_items, Other_items, Profile
-from django.contrib.auth import logout, update_session_auth_hash
-from authlib.integrations.django_client import OAuth
-from django.contrib.auth.decorators import login_required, permission_required
-from .forms import *
-from django.urls import reverse
-from django.db.models import Q
-from django.contrib import messages
-from django.utils import timezone
-from django.core.mail import send_mail
-from django.conf import settings
-from urllib.parse import quote_plus, urlencode
-from django.contrib.auth.forms import PasswordChangeForm
-from django.http import JsonResponse
-import requests
-from django.core.files.base import ContentFile
-from django.contrib.auth import login as django_login
 import os
+from urllib.parse import quote_plus, urlencode
+
+import requests
+from authlib.integrations.django_client import OAuth
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import login as django_login
+from django.contrib.auth import logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.forms import PasswordChangeForm
+from django.core.files.base import ContentFile
+from django.core.mail import send_mail
+from django.db.models import Q
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
+
+from .forms import *
+from .models import Food_items, Other_items, Profile
 
 oauth = OAuth()
 
@@ -34,8 +35,7 @@ oauth.register(
 
 def login(request):
     return oauth.auth0.authorize_redirect(
-        request,
-        request.build_absolute_uri(reverse("callback"))
+        request, request.build_absolute_uri(reverse("callback"))
     )
 
 
@@ -55,8 +55,8 @@ def callback(request):
         except User.DoesNotExist:
             return redirect(reverse("no_account"))
 
-        django_login(request, user)  
-        request.session["user"] = userinfo 
+        django_login(request, user)
+        request.session["user"] = userinfo
 
         return redirect(reverse("view_all_items"))
 
@@ -68,30 +68,30 @@ def callback(request):
 def logout(request):
     request.session.clear()
 
-    auth0_logout_url = (
-        f"https://{settings.AUTH0_DOMAIN}/v2/logout?"
-        + urlencode(
-            {
-                "returnTo": request.build_absolute_uri(reverse("view_all_items")),
-                "client_id": settings.AUTH0_CLIENT_ID,
-            },
-            quote_via=quote_plus,
-        )
+    auth0_logout_url = f"https://{settings.AUTH0_DOMAIN}/v2/logout?" + urlencode(
+        {
+            "returnTo": request.build_absolute_uri(reverse("view_all_items")),
+            "client_id": settings.AUTH0_CLIENT_ID,
+        },
+        quote_via=quote_plus,
     )
-    return render(request, "registration/logged_out.html", {"auth0_logout_url": auth0_logout_url})
+    return render(
+        request, "registration/logged_out.html", {"auth0_logout_url": auth0_logout_url}
+    )
 
 
 def no_account(request):
     return render(request, "storage/no_account.html")
+
 
 # change
 @login_required
 def custom_logout(request):
     if request.method == "POST":
         logout(request)
-        return render(request, "logout_thanks.html") 
+        return render(request, "logout_thanks.html")
     else:
-        return redirect("/")  
+        return redirect("/")
 
 
 @login_required
@@ -117,25 +117,33 @@ def add_other_items(request):
         form = OtherForm(request.POST, request.FILES)
         if form.is_valid():
             other = form.save(commit=False)
-            other.family = request.user.profile.family 
+            other.family = request.user.profile.family
             other.save()
-            return redirect("all_other_items") 
+            return redirect("all_other_items")
     else:
         form = OtherForm()
 
     return render(request, "storage/add_other.html", {"form": form})
 
+
 # HOME page
 @login_required
 def view_all_items(request):
     food_items = Food_items.objects.filter(
-        family=request.user.profile.family, is_active=True, exp_date__gte=timezone.now().date()
+        family=request.user.profile.family,
+        is_active=True,
+        exp_date__gte=timezone.now().date(),
     ).order_by("exp_date")
     other_items = Other_items.objects.filter(family=request.user.profile.family)
     return render(
-        request, "storage/home.html", {"foods": food_items, "others": other_items,
-                                       "family_name": request.user.profile.family.name,
-                                       "weather_api_key": settings.WEATHER_API_KEY,}
+        request,
+        "storage/home.html",
+        {
+            "foods": food_items,
+            "others": other_items,
+            "family_name": request.user.profile.family.name,
+            "weather_api_key": settings.WEATHER_API_KEY,
+        },
     )
 
 
@@ -143,43 +151,66 @@ def view_all_items(request):
 def all_food(request):
     ordering = request.GET.get("ordering", "exp_date")
     food_items = Food_items.objects.filter(
-        family=request.user.profile.family, is_active=True).order_by(ordering)
+        family=request.user.profile.family, is_active=True
+    ).order_by(ordering)
 
-    return render(request,"storage/all_food_page.html",{"foods": food_items, "profile":request.user.profile,
-                                                        "today": now().date()})
-
+    return render(
+        request,
+        "storage/all_food_page.html",
+        {"foods": food_items, "profile": request.user.profile, "today": now().date()},
+    )
 
 
 @login_required
 def all_other(request):
     ordering = request.GET.get("ordering", "title")
-    other_items = Other_items.objects.filter(family=request.user.profile.family, is_active=True).order_by(ordering)
-    return render(request, "storage/all_other_page.html",{"others": other_items, "profile": request.user.profile,
-                                                          "today": now().date(),})
-
+    other_items = Other_items.objects.filter(
+        family=request.user.profile.family, is_active=True
+    ).order_by(ordering)
+    return render(
+        request,
+        "storage/all_other_page.html",
+        {
+            "others": other_items,
+            "profile": request.user.profile,
+            "today": now().date(),
+        },
+    )
 
 
 @login_required
 def food_detail(request, slug):
     food = get_object_or_404(Food_items, slug=slug, family=request.user.profile.family)
-    return render(request, "storage/food_detail.html", {"food": food,"profile":request.user.profile})
+    return render(
+        request,
+        "storage/food_detail.html",
+        {"food": food, "profile": request.user.profile},
+    )
+
 
 @login_required
 def other_detail(request, slug):
     other = get_object_or_404(
         Other_items, slug=slug, family=request.user.profile.family
     )
-    return render(request, "storage/other_detail.html", {"other": other, "profile":request.user.profile})
+    return render(
+        request,
+        "storage/other_detail.html",
+        {"other": other, "profile": request.user.profile},
+    )
+
 
 @login_required
 @permission_required("storage.add_fooditems", raise_exception=True)
 def choose_add_food(request):
     return render(request, "storage/choose_add_food.html")
 
+
 @login_required
 @permission_required("storage.add_otheritems", raise_exception=True)
 def choose_add_other(request):
     return render(request, "storage/choose_add_other.html")
+
 
 # search food
 @login_required
@@ -196,7 +227,9 @@ def search_food(request):
                 # Some APIs return comma-separated categories; pick first
                 first_category = category_name.split(",")[0].strip()
                 if first_category:
-                    category_obj, _ = Category.objects.get_or_create(name=first_category.title())
+                    category_obj, _ = Category.objects.get_or_create(
+                        name=first_category.title()
+                    )
                     food.category = category_obj
 
             image_url = request.POST.get("image_url", "").strip()
@@ -207,9 +240,11 @@ def search_food(request):
 
                         ext = os.path.splitext(image_url)[-1].split("?")[0]
                         if ext.lower() not in [".jpg", ".jpeg", ".png"]:
-                            ext = ".jpg"  
+                            ext = ".jpg"
                         filename = f"{food.title.replace(' ', '_')}{ext}"
-                        food.image.save(filename, ContentFile(response.content), save=False)
+                        food.image.save(
+                            filename, ContentFile(response.content), save=False
+                        )
                 except Exception as e:
                     print("Image download failed:", e)
 
@@ -222,6 +257,7 @@ def search_food(request):
         form = FoodForm()
 
     return render(request, "storage/search_food.html", {"form": form})
+
 
 @login_required
 def search_openfoodfacts(request):
@@ -247,15 +283,18 @@ def search_openfoodfacts(request):
 
     results = []
     for product in data.get("products", []):
-        results.append({
-            "title": product.get("product_name"),
-            "brand": product.get("brands"),
-            "image": product.get("image_thumb_url"),
-            "barcode": product.get("code"),
-            "category": product.get("categories"),
-        })
+        results.append(
+            {
+                "title": product.get("product_name"),
+                "brand": product.get("brands"),
+                "image": product.get("image_thumb_url"),
+                "barcode": product.get("code"),
+                "category": product.get("categories"),
+            }
+        )
 
     return JsonResponse({"results": results})
+
 
 # cant have @ gerneal permissions
 @login_required
@@ -284,6 +323,7 @@ def profile_detail(request, id=None):
 
     return render(request, "storage/profile.html", {"profile": profile})
 
+
 @login_required
 def edit_profile(request, id):
     profile = get_object_or_404(Profile, id)
@@ -301,6 +341,7 @@ def edit_profile(request, id):
         return redirect("profile_detail", id=profile.id)
 
     return render(request, "storage/edit_profile.html", {"profile": profile})
+
 
 # start premisions edit
 @login_required
@@ -368,11 +409,14 @@ def other_edit(request, slug):
         {"form": form, "other": other, "is_edit": True},
     )
 
+
 @login_required
 def all_members(request):
     family = request.user.profile.family
     members = family.members.select_related("user").all()
-    return render(request, "storage/members.html", {"family": family, "members": members})
+    return render(
+        request, "storage/members.html", {"family": family, "members": members}
+    )
 
 
 @login_required
@@ -413,6 +457,7 @@ def category_list(request):
     }
     return render(request, "storage/category.html", context)
 
+
 @login_required
 @permission_required("storage.change_category", raise_exception=True)
 def delete_category(request, pk):
@@ -423,6 +468,7 @@ def delete_category(request, pk):
         category.delete()
         messages.success(request, f"Category '{category.name}' deleted successfully.")
     return redirect("category")
+
 
 @login_required
 def manage_expiry(request, item_id):
@@ -447,6 +493,7 @@ def manage_expiry(request, item_id):
         {"item": item, "form": form, "expiry": expiry},
     )
 
+
 @login_required
 @permission_required("storage.change_expired", raise_exception=True)
 def delete_expiry(request, pk):
@@ -458,6 +505,7 @@ def delete_expiry(request, pk):
     messages.success(request, "Expiry tracking removed for this item.")
     return redirect("manage_expiry", item_id=expiry.item.id)
 
+
 @login_required
 @permission_required("storage.change_expired", raise_exception=True)
 def delete_item(request, pk):
@@ -467,6 +515,7 @@ def delete_item(request, pk):
     item.delete()
     messages.info(request, f"{item.title} has now been deleted")
     return redirect("all_food")
+
 
 @login_required
 @permission_required("storage.change_expired", raise_exception=True)
@@ -480,6 +529,7 @@ def restore_item(request, pk):
     item.save()
     messages.success(request, f"{item.title} restored successfully.")
     return redirect("all_food")
+
 
 @login_required
 def expired_items(request):
@@ -548,6 +598,7 @@ def edit_shopping_list(request, slug):
         {"form": form, "shopping_list": shopping_list},
     )
 
+
 @login_required
 @permission_required("storage.delete_shoppinglist", raise_exception=True)
 def delete_shopping_list(request, slug):
@@ -559,6 +610,7 @@ def delete_shopping_list(request, slug):
     return render(
         request, "storage/confirm_delete.html", {"shopping_list": shopping_list}
     )
+
 
 # may add feturte that admin can approve and chnage premissions
 @login_required
@@ -579,6 +631,7 @@ def add_shopping_item(request, slug):
         request, "storage/addShopItem.html", {"form": form, "shop_list": shop_list}
     )
 
+
 @login_required
 @permission_required("storage.edit_shoppinglist", raise_exception=True)
 def edit_shopping_item(request, slug):
@@ -592,6 +645,7 @@ def edit_shopping_item(request, slug):
         form = ShoppingItemForm(instance=item)
     return render(request, "storage/addShopItem.html", {"form": form, "item": item})
 
+
 @login_required
 @permission_required("storage.delete_shoppinglist", raise_exception=True)
 def delete_shopping_item(request, slug):
@@ -600,18 +654,30 @@ def delete_shopping_item(request, slug):
     item.delete()
     return redirect("view_shopping_list", slug=slug)
 
+
 @login_required
 @permission_required("storage.email", raise_exception=True)
 def send_mail_shopping(request, slug):
     shopping_list = get_object_or_404(ShoppingList, slug=slug)
-    
-    family_members = shopping_list.family.members.all()
-    recipient_emails = [member.user.email for member in family_members if member.user.email]
 
-    message_lines = [f"Shopping List: {shopping_list.title}", f"Category: {shopping_list.category}", "", "Items:"]
+    family_members = shopping_list.family.members.all()
+    recipient_emails = [
+        member.user.email for member in family_members if member.user.email
+    ]
+
+    message_lines = [
+        f"Shopping List: {shopping_list.title}",
+        f"Category: {shopping_list.category}",
+        "",
+        "Items:",
+    ]
     for item in shopping_list.items.all():
-        item_name = item.item_name or (item.food_item.title if item.food_item else item.other_item.title)
-        message_lines.append(f"- {item_name} | Type: {item.type} | Qty: {item.quantity} | Price: {item.price} | Purchased: {'Yes' if item.purchased else 'No'}")
+        item_name = item.item_name or (
+            item.food_item.title if item.food_item else item.other_item.title
+        )
+        message_lines.append(
+            f"- {item_name} | Type: {item.type} | Qty: {item.quantity} | Price: {item.price} | Purchased: {'Yes' if item.purchased else 'No'}"
+        )
 
     message_body = "\n".join(message_lines)
 
@@ -629,12 +695,17 @@ def send_mail_shopping(request, slug):
         except Exception as e:
             result = f"Error sending email: {e}"
 
-    return render(request, "storage/email/shoppingEmail.html", {
-        "shopping_list": shopping_list,
-        "recipient_emails": ", ".join(recipient_emails),
-        "message_body": message_body,
-        "result": result,
-    })
+    return render(
+        request,
+        "storage/email/shoppingEmail.html",
+        {
+            "shopping_list": shopping_list,
+            "recipient_emails": ", ".join(recipient_emails),
+            "message_body": message_body,
+            "result": result,
+        },
+    )
+
 
 # settings
 @login_required
@@ -646,7 +717,9 @@ def user_settings(request):
         if "save_appearance" in request.POST:
             profile.theme = request.POST.get("theme", profile.theme)
             profile.font_size = int(request.POST.get("font_size", profile.font_size))
-            profile.letter_spacing = float(request.POST.get("letter_spacing", profile.letter_spacing))
+            profile.letter_spacing = float(
+                request.POST.get("letter_spacing", profile.letter_spacing)
+            )
             profile.save()
             messages.success(request, "Appearance updated")
 
@@ -658,6 +731,7 @@ def user_settings(request):
         return redirect("settings")
 
     return render(request, "storage/settings.html", {"profile": profile})
+
 
 # email notificatyion to work when this happens
 @login_required
@@ -693,10 +767,15 @@ def change_password(request):
     else:
         form = PasswordChangeForm(request.user)
 
-    return render(request, "storage/change_password.html", {
-        "form": form,
-        "result": result,
-    })
+    return render(
+        request,
+        "storage/change_password.html",
+        {
+            "form": form,
+            "result": result,
+        },
+    )
+
 
 @login_required
 def delete_account(request):
@@ -728,9 +807,7 @@ def delete_account(request):
         messages.success(request, result)
         return redirect("login")
 
-    return render(request, "storage/confirm_account_deletion.html", {
-        "result": result
-    })
+    return render(request, "storage/confirm_account_deletion.html", {"result": result})
 
 
 @login_required

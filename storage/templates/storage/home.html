@@ -1,21 +1,29 @@
 {% extends "base.html" %}
+
 {% block title %}Family Dashboard{% endblock %}
 
 {% block content %}
+
 {% include "storage/navbar.html" %}
+
 {% include "storage/dashboard_layout.html" %}
 
-<br>
-<br>
+<br><br>
+
 <h2 class="text-center mb-5 fw-bold">
-    <a href="{% url 'all_food' %}" class="nav-link px-3 text-dark">Food Items</a>
+  <a href="{% url 'all_food' %}" class="nav-link px-3 text-body">
+    Food Items
+  </a>
 </h2>
+
 {% include "storage/_food_items_grid.html" %}
 
-<br>
-<br>
+<br><br>
+
 <h2 class="text-center mb-5 fw-bold">
-    <a href="{% url 'all_other_items' %}" class="nav-link px-3 text-dark">Other Items</a>
+  <a href="{% url 'all_other_items' %}" class="nav-link px-3 text-body">
+    Other Items
+  </a>
 </h2>
 
 {% include "storage/_other_items_grid.html" %}

@@ -1,6 +1,7 @@
-from django.utils import timezone
-from .models import Food_items
 from django.core.mail import send_mail
+from django.utils import timezone
+
+from .models import Food_items
 
 
 def check_expired_items():

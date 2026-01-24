@@ -1,11 +1,12 @@
-from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
 from datetime import date, timedelta
-from django.utils.text import slugify
-from django.contrib.auth.models import User, Permission
+
+from django.contrib.auth.models import Permission, User
+from django.contrib.contenttypes.models import ContentType
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.contrib.contenttypes.models import ContentType
+from django.utils.text import slugify
 from django.utils.timezone import now
 
 
@@ -105,6 +106,7 @@ def generate_unique_slug(instance, value, slug_field="slug"):
 
     return slug
 
+
 class Food_items(models.Model):
     barcode = models.CharField(max_length=32, blank=True, null=True)
     image = models.ImageField(
@@ -147,7 +149,6 @@ class Food_items(models.Model):
         self.slug = slugify(f"{self.brand}-{self.title}-{self.quantity}")
         super().save(*args, **kwargs)
 
-
     def __str__(self):
         return f"{self.title} ({self.category}) - exp-date({self.exp_date})"
 
@@ -188,7 +189,6 @@ class Other_items(models.Model):
         self.slug = slugify(f"{self.brand}-{self.title}-{self.quantity}")
         super().save(*args, **kwargs)
 
-
     def __str__(self):
         return f"{self.title} ({self.category})"
 
@@ -210,7 +210,7 @@ class Profile(models.Model):
         OWNER = "owner", "Owner"
         ADMIN = "admin", "Admin"
         USER = "user", "User"
-    
+
     THEME_COLOUR = [
         ("light", "Light"),
         ("dark", "Dark"),
@@ -222,20 +222,20 @@ class Profile(models.Model):
         default="profile_pics/default_profile_pic.jpg",
         upload_to="profile_pic/personal_images",
     )
-    family = models.ForeignKey("Family", on_delete=models.CASCADE, related_name="members", null=True)
+    family = models.ForeignKey(
+        "Family", on_delete=models.CASCADE, related_name="members", null=True
+    )
     display_name = models.CharField(max_length=512)
     role = models.CharField(max_length=10, choices=Role.choices)
 
-    theme = models.CharField(max_length=10,choices=THEME_COLOUR,default="light")
+    theme = models.CharField(max_length=10, choices=THEME_COLOUR, default="light")
     notifications_enabled = models.BooleanField(default=True)
     font_size = models.PositiveSmallIntegerField(default=16)
-    letter_spacing = models.DecimalField(max_digits=3,decimal_places=1,default=0.0)
+    letter_spacing = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
     created_at = models.DateTimeField(auto_now_add=True)
-
 
     def __str__(self):
         return f"{self.display_name} ({self.role})"
-
 
 
 class ItemExpiry(models.Model):
@@ -283,11 +283,10 @@ class ShoppingList(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["family", "slug"],
-                name="unique_shoppinglist_slug_per_family"
+                fields=["family", "slug"], name="unique_shoppinglist_slug_per_family"
             )
         ]
-    
+
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = generate_unique_slug(
@@ -346,7 +345,6 @@ class Shopitems(models.Model):
             )
         ]
 
-
     def __str__(self):
         name = (
             self.item_name
@@ -355,7 +353,7 @@ class Shopitems(models.Model):
             or "Unnamed"
         )
         return f"{name} (x{self.quantity})"
-    
+
     def get_display_name(self):
         if self.item_name:
             return self.item_name
@@ -365,7 +363,6 @@ class Shopitems(models.Model):
             return self.other_item.title
         return "item"
 
-
     def save(self, *args, **kwargs):
         if not self.slug:
             base_value = self.get_display_name()
@@ -374,7 +371,6 @@ class Shopitems(models.Model):
                 base_value,
             )
         super().save(*args, **kwargs)
-
 
     def clean(self):
         """Ensure that exactly one item source is set."""
@@ -386,7 +382,7 @@ class Shopitems(models.Model):
 
         if not (self.food_item or self.other_item or self.item_name.strip()):
             raise ValidationError("Provide either a linked item or a manual item name.")
-    
+
 
 @receiver(post_save, sender=User)
 def assign_permissions(sender, instance, created, **kwargs):
@@ -406,7 +402,7 @@ def assign_permissions(sender, instance, created, **kwargs):
             user=instance,
             display_name=instance.username,
             family=None,  # or a default Family instance
-            role=Profile.Role.USER
+            role=Profile.Role.USER,
         )
 
     # Assign permissions based on role
@@ -416,12 +412,24 @@ def assign_permissions(sender, instance, created, **kwargs):
 
     if profile.role in [Profile.Role.ADMIN, Profile.Role.OWNER]:
         codenames = [
-            "add_fooditems", "change_fooditems", "delete_fooditems", "view_fooditems",
-            "add_otheritems", "change_otheritems", "delete_otheritems", "view_otheritems",
-            "add_shoppinglist", "view_profiledetail","edit_members","change_category",
-            "change_expired", "edit_shoppinglist", "delete_shoppinglist", "edit_shoppinglist",
-            "delete_shoppinglist", "email",
-    
+            "add_fooditems",
+            "change_fooditems",
+            "delete_fooditems",
+            "view_fooditems",
+            "add_otheritems",
+            "change_otheritems",
+            "delete_otheritems",
+            "view_otheritems",
+            "add_shoppinglist",
+            "view_profiledetail",
+            "edit_members",
+            "change_category",
+            "change_expired",
+            "edit_shoppinglist",
+            "delete_shoppinglist",
+            "edit_shoppinglist",
+            "delete_shoppinglist",
+            "email",
         ]
         perms = Permission.objects.filter(
             content_type__in=[food_type, other_type, shoppinglist_type],
@@ -429,8 +437,10 @@ def assign_permissions(sender, instance, created, **kwargs):
         )
     else:
         codenames = [
-            "change_fooditems", "view_fooditems",
-            "change_otheritems", "view_otheritems",
+            "change_fooditems",
+            "view_fooditems",
+            "change_otheritems",
+            "view_otheritems",
         ]
         perms = Permission.objects.filter(
             content_type__in=[food_type, other_type],
