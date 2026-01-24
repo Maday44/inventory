@@ -246,7 +246,7 @@ class ItemExpiry(models.Model):
     added_on = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(
         default=True
-    )  # allows re-adding or reactivating expiry tracking
+    )  
 
     def is_expired(self):
         return self.exp_date and self.exp_date < date.today()
@@ -310,7 +310,6 @@ class Shopitems(models.Model):
     )
     type = models.CharField(max_length=10, choices=Types.choices)
 
-    # Optional links to predefined items
     food_item = models.ForeignKey(
         Food_items,
         on_delete=models.SET_NULL,
@@ -326,7 +325,6 @@ class Shopitems(models.Model):
         related_name="shop_entries",
     )
 
-    # Manual entry name (if not using existing item)
     item_name = models.CharField(max_length=512, blank=True)
     family = models.ForeignKey(
         Family, null=True, on_delete=models.CASCADE, related_name="shop_items"
@@ -391,56 +389,65 @@ def assign_permissions(sender, instance, created, **kwargs):
     Does NOT create a Profile if it already exists to avoid UNIQUE constraint errors.
     """
     if not created:
-        return  # only run for newly created users
+        return 
 
-    # Make sure Profile exists before assigning permissions
     try:
         profile = instance.profile
     except Profile.DoesNotExist:
-        # Optionally create a Profile with safe defaults
         profile = Profile.objects.create(
             user=instance,
             display_name=instance.username,
-            family=None,  # or a default Family instance
+            family=None,  
             role=Profile.Role.USER,
         )
 
-    # Assign permissions based on role
     food_type = ContentType.objects.get_for_model(Food_items)
     other_type = ContentType.objects.get_for_model(Other_items)
     shoppinglist_type = ContentType.objects.get_for_model(ShoppingList)
 
     if profile.role in [Profile.Role.ADMIN, Profile.Role.OWNER]:
         codenames = [
-            "add_fooditems",
-            "change_fooditems",
-            "delete_fooditems",
-            "view_fooditems",
-            "add_otheritems",
-            "change_otheritems",
-            "delete_otheritems",
-            "view_otheritems",
-            "add_shoppinglist",
-            "view_profiledetail",
+            "add_food_items",
+            "change_food_items",
+            "delete_food_items",
+            "view_food_items",
+            "add_other_items",
+            "change_other_items",
+            "delete_other_items",
+            "view_other_items",
+            "add_shopping_list",
+            "change_shopping_list",
             "edit_members",
             "change_category",
             "change_expired",
-            "edit_shoppinglist",
-            "delete_shoppinglist",
-            "edit_shoppinglist",
-            "delete_shoppinglist",
+            "delete_shopping_list",
+            "view_profile_detail",
+            "add_category",
+            "delete_category",
+            "add_shoppingcategory",
+            "change_shoppingcategory",
+            "delete_shoppingcategory",
+            "change_itemexpiry",
+            "delete_itemexpiry",
+            "add_shopitems",
+            "change_shopitems",
+            "delete_shopitems",
+            "change_family",
+            "delete_family",
             "email",
         ]
+        # <QuerySet ['add_profile', 'change_profile', 'delete_profile', 'view_profile']>
+
         perms = Permission.objects.filter(
             content_type__in=[food_type, other_type, shoppinglist_type],
             codename__in=codenames,
         )
     else:
         codenames = [
-            "change_fooditems",
-            "view_fooditems",
-            "change_otheritems",
-            "view_otheritems",
+            "change_food_items",
+            "view_food_items",
+            "change_other_items",
+            "view_other_items",
         ]
         perms = Permission.objects.filter(
             content_type__in=[food_type, other_type],

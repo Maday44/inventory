@@ -110,3 +110,76 @@ class EmailChangeForm(forms.Form):
         if email == self.user.email:
             raise forms.ValidationError("This is already your email.")
         return email
+
+CODENAMES = [
+    "add_food_items",
+    "change_food_items",
+    "delete_food_items",
+    "add_other_items",
+    "change_other_items",
+    "delete_other_items",
+    "add_shopping_list",
+    "view_profile_detail",
+    "edit_members",
+    "change_category",
+    "add_category",
+    "delete_category",
+    "add_shoppingcategory",
+    "change_shoppingcategory",
+    "delete_shoppingcategory",
+    "change_itemexpiry",
+    "delete_itemexpiry",
+    "edit_shoppinglist",
+    "delete_shoppinglist",
+    "add_shopitems",
+    "change_shopitems",
+    "delete_shopitems",
+    "change_family",
+    "delete_family",
+]
+
+PERMISSION_LABELS = {
+    "add_food_items": "Add Food Item",
+    "change_food_items": "Edit Food Item",
+    "delete_food_items": "Delete Food Item",
+    "add_other_items": "Add Other Item",
+    "change_other_items": "Edit Other Item",
+    "delete_other_items": "Delete Other Item",
+    "add_shopping_list": "Add Shopping List",
+    "view_profile_detail": "View Profile Detail",
+    "edit_members": "Edit Members",
+    "change_category": "Edit Category",
+    "add_category": "Add Category",
+    "delete_category": "Delete Category",
+    "add_shoppingcategory": "Add Shopping Category",
+    "change_shoppingcategory": "Edit Shopping Category",
+    "delete_shoppingcategory": "Delete Shopping Category",
+    "change_itemexpiry": "Change Item Expiry",
+    "delete_itemexpiry": "Delete Item Expiry",
+    "edit_shoppinglist": "Edit Shopping List",
+    "delete_shoppinglist": "Delete Shopping List",
+    "add_shopitems": "Add Shop Item",
+    "change_shopitems": "Edit Shop Item",
+    "delete_shopitems": "Delete Shop Item",
+    "change_family": "Change Family",
+    "delete_family": "Delete Family",
+}
+
+
+class EditUserPermissionsForm(forms.Form):
+    role = forms.ChoiceField(
+        choices=Profile.Role.choices,
+        label="Role",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+    permissions = forms.ModelMultipleChoiceField(
+        queryset=Permission.objects.filter(codename__in=CODENAMES),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Custom Permissions",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["permissions"].label_from_instance = lambda obj: PERMISSION_LABELS.get(obj.codename, str(obj))

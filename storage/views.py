@@ -95,7 +95,7 @@ def custom_logout(request):
 
 
 @login_required
-@permission_required("storage.add_fooditems", raise_exception=True)
+@permission_required("storage.add_food_items", raise_exception=True)
 def add_food(request):
     if request.method == "POST":
         form = FoodForm(request.POST, request.FILES)
@@ -111,7 +111,7 @@ def add_food(request):
 
 
 @login_required
-@permission_required("storage.add_otheritems", raise_exception=True)
+@permission_required("storage.add_other_items", raise_exception=True)
 def add_other_items(request):
     if request.method == "POST":
         form = OtherForm(request.POST, request.FILES)
@@ -201,20 +201,20 @@ def other_detail(request, slug):
 
 
 @login_required
-@permission_required("storage.add_fooditems", raise_exception=True)
+@permission_required("storage.add_food_items", raise_exception=True)
 def choose_add_food(request):
     return render(request, "storage/choose_add_food.html")
 
 
 @login_required
-@permission_required("storage.add_otheritems", raise_exception=True)
+@permission_required("storage.add_other_items", raise_exception=True)
 def choose_add_other(request):
     return render(request, "storage/choose_add_other.html")
 
 
 # search food
 @login_required
-@permission_required("storage.add_fooditems", raise_exception=True)
+@permission_required("storage.add_food_items", raise_exception=True)
 def search_food(request):
     if request.method == "POST":
         form = FoodForm(request.POST, request.FILES)
@@ -224,7 +224,6 @@ def search_food(request):
 
             category_name = request.POST.get("category_name", "").strip()
             if category_name:
-                # Some APIs return comma-separated categories; pick first
                 first_category = category_name.split(",")[0].strip()
                 if first_category:
                     category_obj, _ = Category.objects.get_or_create(
@@ -345,7 +344,7 @@ def edit_profile(request, id):
 
 # start premisions edit
 @login_required
-@permission_required("storage.delete_fooditems", raise_exception=True)
+@permission_required("storage.delete_food_items", raise_exception=True)
 def food_item_delete(request, slug):
     food = get_object_or_404(Food_items, slug=slug)
     if request.method == "POST":
@@ -356,7 +355,7 @@ def food_item_delete(request, slug):
 
 
 @login_required
-@permission_required("storage.delete_otheritems", raise_exception=True)
+@permission_required("storage.delete_other_items", raise_exception=True)
 def other_item_delete(request, slug):
     other = get_object_or_404(Other_items, slug=slug)
     if request.method == "POST":
@@ -367,7 +366,7 @@ def other_item_delete(request, slug):
 
 
 @login_required
-@permission_required("storage.change_fooditems", raise_exception=True)
+@permission_required("storage.change_food_items", raise_exception=True)
 def food_edit(request, slug):
     food = get_object_or_404(Food_items, slug=slug)
 
@@ -388,7 +387,7 @@ def food_edit(request, slug):
 
 
 @login_required
-@permission_required("storage.change_otheritems", raise_exception=True)
+@permission_required("storage.change_other_items", raise_exception=True)
 def other_edit(request, slug):
     other = get_object_or_404(Other_items, slug=slug)
 
@@ -422,17 +421,34 @@ def all_members(request):
 @login_required
 @permission_required("storage.edit_members", raise_exception=True)
 def edit_member_view(request, member_id):
-    member = get_object_or_404(
-        Profile, id=member_id, family=request.user.profile.family
-    )
+    member = get_object_or_404(Profile, id=member_id, family=request.user.profile.family)
+    user = member.user
 
     if request.method == "POST":
-        new_role = request.POST.get("role")
-        member.role = new_role
-        member.save()
-        return redirect("family_members")
+        form = EditUserPermissionsForm(request.POST)
+        if form.is_valid():
+            # Update role
+            new_role = form.cleaned_data["role"]
+            member.role = new_role
+            member.save()
 
-    return render(request, "storage/edit_member.html", {"member": member})
+            # Update selected permissions
+            perms = form.cleaned_data["permissions"]
+            user.user_permissions.set(perms)
+
+            messages.success(request, "Member role and permissions updated successfully.")
+            return redirect("members")  # replace with your actual URL name
+    else:
+        # Pre-fill form with current role and permissions
+        form = EditUserPermissionsForm(
+            initial={
+                "role": member.role,
+                "permissions": user.user_permissions.filter(codename__in=CODENAMES),
+            }
+        )
+
+    return render(request, "storage/edit_member.html", {"member": member, "form": form})
+
 
 
 @login_required
@@ -495,7 +511,7 @@ def manage_expiry(request, item_id):
 
 
 @login_required
-@permission_required("storage.change_expired", raise_exception=True)
+@permission_required("storage.change_itemexpiry", raise_exception=True)
 def delete_expiry(request, pk):
     expiry = get_object_or_404(
         ItemExpiry, pk=pk, item__family=request.user.profile.family
@@ -507,7 +523,7 @@ def delete_expiry(request, pk):
 
 
 @login_required
-@permission_required("storage.change_expired", raise_exception=True)
+@permission_required("storage.change_itemexpiry", raise_exception=True)
 def delete_item(request, pk):
     item = get_object_or_404(Food_items, pk=pk, family=request.user.profile.family)
     item.is_active = False
@@ -518,7 +534,7 @@ def delete_item(request, pk):
 
 
 @login_required
-@permission_required("storage.change_expired", raise_exception=True)
+@permission_required("storage.change_itemexpiry", raise_exception=True)
 def restore_item(request, pk):
     item = get_object_or_404(
         Food_items, pk=pk, family=request.user.profile.family, is_active=False
@@ -564,7 +580,7 @@ def view_shopping_list(request, slug):
 
 
 @login_required
-@permission_required("storage.add_shoppinglist", raise_exception=True)
+@permission_required("storage.add_shopping_list", raise_exception=True)
 def add_shopping_list(request):
     if request.method == "POST":
         form = ShoppingListForm(request.POST, request.FILES, user=request.user)
@@ -581,7 +597,7 @@ def add_shopping_list(request):
 
 
 @login_required
-@permission_required("storage.edit_shoppinglist", raise_exception=True)
+@permission_required("storage.change_shopping_list", raise_exception=True)
 def edit_shopping_list(request, slug):
     shopping_list = get_object_or_404(ShoppingList, slug=slug)
     if request.method == "POST":
@@ -600,7 +616,7 @@ def edit_shopping_list(request, slug):
 
 
 @login_required
-@permission_required("storage.delete_shoppinglist", raise_exception=True)
+@permission_required("storage.delete_shopping_list", raise_exception=True)
 def delete_shopping_list(request, slug):
     shopping_list = get_object_or_404(ShoppingList, slug=slug)
     if request.method == "POST":
@@ -614,6 +630,7 @@ def delete_shopping_list(request, slug):
 
 # may add feturte that admin can approve and chnage premissions
 @login_required
+@permission_required("storage.add_shopping_list", raise_exception=True)
 def add_shopping_item(request, slug):
     shop_list = get_object_or_404(ShoppingList, slug=slug)
     if request.method == "POST":
@@ -633,7 +650,7 @@ def add_shopping_item(request, slug):
 
 
 @login_required
-@permission_required("storage.edit_shoppinglist", raise_exception=True)
+@permission_required("storage.change_shopping_list", raise_exception=True)
 def edit_shopping_item(request, slug):
     item = get_object_or_404(Shopitems, slug=slug)
     if request.method == "POST":
@@ -647,7 +664,7 @@ def edit_shopping_item(request, slug):
 
 
 @login_required
-@permission_required("storage.delete_shoppinglist", raise_exception=True)
+@permission_required("storage.delete_shopping_list", raise_exception=True)
 def delete_shopping_item(request, slug):
     item = get_object_or_404(Shopitems, slug=slug)
     slug = item.shopping_list.slug
