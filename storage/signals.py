@@ -23,7 +23,7 @@ def assign_permissions(sender, instance, created, **kwargs):
             "display_name": instance.username,
             "family": None,
             "role": Profile.Role.USER,
-        }
+        },
     )
 
     assign_permissions(instance, profile)

@@ -10,12 +10,25 @@ admin.site.register(Profile)
 admin.site.register(Category)
 admin.site.register(Shopitems)
 admin.site.register(ShoppingList)
+admin.site.register(Family)
+admin.site.register(FamilyMember)
+
+
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ("display_name", "user")
+    search_fields = ("display_name", "user__username")
 
 
 class ProfileInline(admin.StackedInline):
     model = Profile
     can_delete = False
+    extra = 0
+
+
+class FamilyMemberInline(admin.TabularInline):
+    model = FamilyMember
     extra = 1
+    autocomplete_fields = ["profile"]
 
 
 class CustomUserAdmin(UserAdmin):
@@ -26,20 +39,19 @@ admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 
 
-@admin.register(Family)
 class FamilyAdmin(admin.ModelAdmin):
     list_display = ("name", "member_count", "get_members")
-    inlines = [ProfileInline]
+    inlines = [FamilyMemberInline]
 
     def member_count(self, obj):
-        return obj.members.count()
+        return obj.memberships.count()  # Use the FamilyMember model
 
     member_count.short_description = "Number of Members"
 
     def get_members(self, obj):
-        members = obj.members.all()
+        members = obj.memberships.select_related("profile")
         if members.exists():
-            return ", ".join([m.display_name for m in members])
+            return ", ".join([m.profile.display_name for m in members])
         return "No members"
 
     get_members.short_description = "Members"

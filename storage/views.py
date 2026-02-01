@@ -80,6 +80,7 @@ def logout(request):
     )
 
 
+# for user to create an account page username, name etc
 def no_account(request):
     return render(request, "storage/no_account.html")
 
@@ -92,6 +93,40 @@ def custom_logout(request):
         return render(request, "logout_thanks.html")
     else:
         return redirect("/")
+
+
+def generate_invite(request, family_id):
+    family = get_object_or_404(Family, id=family_id)
+
+    invite = FamilyInvite.objects.create(family=family)
+
+    invite_link = request.build_absolute_uri(f"/join-family/{invite.token}/")
+
+    return JsonResponse({"invite_link": invite_link})
+
+
+@login_required
+def join_family(request, token):
+    invite = get_object_or_404(FamilyInvite, token=token, is_used=False)
+
+    family = invite.family
+    family.members.add(request.user)
+
+    invite.is_used = True
+    invite.save()
+
+    return redirect("family_detail", family_id=family.id)
+
+
+@login_required
+def create_family(request):
+    if request.method == "POST":
+        name = request.POST.get("name")
+
+        family = Family.objects.create(name=name, owner=request.user)
+        family.members.add(request.user)
+
+        return redirect("family_detail", family_id=family.id)
 
 
 @login_required
@@ -421,7 +456,9 @@ def all_members(request):
 @login_required
 @permission_required("storage.edit_members", raise_exception=True)
 def edit_member_view(request, member_id):
-    member = get_object_or_404(Profile, id=member_id, family=request.user.profile.family)
+    member = get_object_or_404(
+        Profile, id=member_id, family=request.user.profile.family
+    )
     user = member.user
 
     if request.method == "POST":
@@ -436,7 +473,9 @@ def edit_member_view(request, member_id):
             perms = form.cleaned_data["permissions"]
             user.user_permissions.set(perms)
 
-            messages.success(request, "Member role and permissions updated successfully.")
+            messages.success(
+                request, "Member role and permissions updated successfully."
+            )
             return redirect("members")  # replace with your actual URL name
     else:
         # Pre-fill form with current role and permissions
@@ -448,7 +487,6 @@ def edit_member_view(request, member_id):
         )
 
     return render(request, "storage/edit_member.html", {"member": member, "form": form})
-
 
 
 @login_required

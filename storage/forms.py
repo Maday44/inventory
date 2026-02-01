@@ -111,6 +111,7 @@ class EmailChangeForm(forms.Form):
             raise forms.ValidationError("This is already your email.")
         return email
 
+
 CODENAMES = [
     "add_food_items",
     "change_food_items",
@@ -182,4 +183,6 @@ class EditUserPermissionsForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["permissions"].label_from_instance = lambda obj: PERMISSION_LABELS.get(obj.codename, str(obj))
+        self.fields["permissions"].label_from_instance = (
+            lambda obj: PERMISSION_LABELS.get(obj.codename, str(obj))
+        )

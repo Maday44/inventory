@@ -1,5 +1,5 @@
+import uuid
 from datetime import date, timedelta
-
 from django.contrib.auth.models import Permission, User
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -193,18 +193,6 @@ class Other_items(models.Model):
         return f"{self.title} ({self.category})"
 
 
-class Family(models.Model):
-    name = models.CharField(blank=False, max_length=512)
-
-    def save(self, *args, **kwargs):
-        if self.name:
-            self.name = self.name.title()
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.name}, has {self.members.count()} members"
-
-
 class Profile(models.Model):
     class Role(models.TextChoices):
         OWNER = "owner", "Owner"
@@ -222,11 +210,11 @@ class Profile(models.Model):
         default="profile_pics/default_profile_pic.jpg",
         upload_to="profile_pic/personal_images",
     )
-    family = models.ForeignKey(
-        "Family", on_delete=models.CASCADE, related_name="members", null=True
-    )
+    # family = models.ForeignKey(
+    #     "Family", on_delete=models.CASCADE, related_name="members", null=True
+    # )
     display_name = models.CharField(max_length=512)
-    role = models.CharField(max_length=10, choices=Role.choices)
+    # role = models.CharField(max_length=10, choices=Role.choices)
 
     theme = models.CharField(max_length=10, choices=THEME_COLOUR, default="light")
     notifications_enabled = models.BooleanField(default=True)
@@ -234,8 +222,75 @@ class Profile(models.Model):
     letter_spacing = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def family(self):
+        membership = self.memberships.select_related("family").first()
+        if membership:
+            return membership.family
+
+        # Auto-fix: create a family if missing
+        family = Family.objects.create(
+            name=f"{self.display_name}'s Family",
+            owner=self,
+        )
+        return family
+
     def __str__(self):
-        return f"{self.display_name} ({self.role})"
+        membership = self.memberships.first()
+        if membership:
+            return f"{self.display_name} ({membership.role})"
+        return self.display_name
+
+
+class Family(models.Model):
+    name = models.CharField(blank=False, max_length=512)
+    owner = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name="owned_families"
+    )
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        if is_new:
+            FamilyMember.objects.create(
+                family=self, profile=self.owner, role=Profile.Role.OWNER
+            )
+
+    def __str__(self):
+        return f"{self.name}'s family"
+
+
+class FamilyMember(models.Model):
+    family = models.ForeignKey(
+        Family, on_delete=models.CASCADE, related_name="memberships"
+    )
+
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name="memberships"
+    )
+
+    role = models.CharField(
+        max_length=10, choices=Profile.Role.choices, default=Profile.Role.USER
+    )
+
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("family", "profile")
+
+    def __str__(self):
+        return f"{self.profile} → {self.family} ({self.role})"
+
+
+class FamilyInvite(models.Model):
+    family = models.ForeignKey(Family, on_delete=models.CASCADE)
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Invite to {self.family.name}"
 
 
 class ItemExpiry(models.Model):
@@ -244,9 +299,7 @@ class ItemExpiry(models.Model):
     )
     exp_date = models.DateField(null=True, blank=True)
     added_on = models.DateTimeField(auto_now_add=True)
-    is_active = models.BooleanField(
-        default=True
-    )  
+    is_active = models.BooleanField(default=True)
 
     def is_expired(self):
         return self.exp_date and self.exp_date < date.today()
@@ -389,7 +442,7 @@ def assign_permissions(sender, instance, created, **kwargs):
     Does NOT create a Profile if it already exists to avoid UNIQUE constraint errors.
     """
     if not created:
-        return 
+        return
 
     try:
         profile = instance.profile
@@ -397,7 +450,7 @@ def assign_permissions(sender, instance, created, **kwargs):
         profile = Profile.objects.create(
             user=instance,
             display_name=instance.username,
-            family=None,  
+            family=None,
             role=Profile.Role.USER,
         )
 
@@ -454,5 +507,4 @@ def assign_permissions(sender, instance, created, **kwargs):
             codename__in=codenames,
         )
 
-    # Assign permissions to the user
     instance.user_permissions.set(perms)
