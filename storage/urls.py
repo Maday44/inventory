@@ -18,6 +18,7 @@ urlpatterns = [
     path("add_food/", views.add_food, name="add_food"),
     path("choose_add_food/", views.choose_add_food, name="choose_add_food"),
     path("search_food/", views.search_food, name="search_food"),
+    path("food/<slug:slug>/expired/restore/", views.place_back_expired_items, name="place_back_expired_items"),
     # path("searching_food/", views.search_openfoodfacts, name="searching_food"),
     path("api/search-food/", views.search_openfoodfacts, name="search_food_api"),
     path("food/<slug:slug>/delete", views.food_item_delete, name="food-delete"),
@@ -33,6 +34,7 @@ urlpatterns = [
     path("item/restore/<int:pk>/", views.restore_item, name="restore_item"),
     # Expired items page
     path("items/expired/", views.expired_items, name="expired_items"),
+
     # other items
     path("all_other_items/", views.all_other, name="all_other_items"),
     path("other/<slug:slug>/", views.other_detail, name="other_detail"),

@@ -37,7 +37,8 @@
       <span class="me-3 text-secondary">
         <a href="{% url 'my_profile' %}" class="text-decoration-none text-dark">
           {{ user.profile.display_name }} 
-          ({{ user.profile.get_role_display }})
+          ({{ user.profile.role_display }})
+
         </a>
       </span>
 

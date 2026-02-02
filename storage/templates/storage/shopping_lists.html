@@ -7,12 +7,13 @@
 <div class="container mt-5">
     <h2 class="mb-4 text-center">🛒 Family Shopping Lists</h2>
 
-    <!-- Add New Shopping List Button -->
+{% if perms.storage.add_shopping_list %}
     <div class="text-end mb-3">
         <a href="{% url 'add_shopping_list' %}" class="btn btn-success">
             <i class="bi bi-plus-circle"></i> New Shopping List
         </a>
     </div>
+{% endif %}
 
     {% if lists %}
         <div class="row row-cols-1 row-cols-md-2 g-4">
@@ -65,11 +66,15 @@
                         <a href="{% url 'view_shopping_list' list.slug %}" class="btn btn-primary btn-sm">
                             <i class="bi bi-eye"></i> View
                         </a>
+                        {% if perms.storage.change_shopping_list %}
                         <a href="{% url 'edit_shopping_list' list.slug %}" class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-pencil-square"></i> Edit
                         </a>
+                        {% endif %}
+                        {% if perms.storage.delete_shopping_list %}
                         <a href="{% url 'delete_shopping_list' list.slug %}" class="btn btn-outline-danger btn-sm">
                             <i class="bi bi-trash"></i> Delete
+                        {% endif %}
                         </a>
                     </div>
                 </div>

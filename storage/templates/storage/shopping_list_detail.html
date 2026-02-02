@@ -6,11 +6,13 @@
     <h2>{{ shop_list.title }} 🛒</h2>
     <p>Category: {{ shop_list.category }}</p>
 
+{% if perms.storage.add_shopitems %}
     <div class="mb-3">
         <a href="{% url 'add_shopping_item' shop_list.slug %}" class="btn btn-success">
             <i class="bi bi-plus-circle"></i> Add Item
         </a>
     </div>
+{% endif %}
 
     {% if items %}
     <table class="table table-striped">
@@ -33,8 +35,12 @@
                 <td>{{ item.price }}</td>
                 <td>{{ item.purchased }}</td>
                 <td>
+                {% if perms.storage.change_shopitems %}
                     <a href="{% url 'edit_shopping_item' item.slug %}" class="btn btn-sm btn-primary">Edit</a>
+                {% endif %}    
+                {% if perms.storage.delete_shopitems %}
                     <a href="{% url 'delete_shopping_item' item.slug %}" class="btn btn-sm btn-danger">Delete</a>
+                {% endif %}
                 </td>
             </tr>
             {% endfor %}

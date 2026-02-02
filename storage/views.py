@@ -329,52 +329,104 @@ def search_openfoodfacts(request):
 
     return JsonResponse({"results": results})
 
-
-# cant have @ gerneal permissions
 @login_required
 def profile_detail(request, id=None):
-    """
-    Show a user's profile:
-    - Owners can view all profiles
-    - Admins can view only users in their family
-    - Regular users can view only themselves
-    """
-    current_user_profile = request.user.profile
+ 
+    current_profile = request.user.profile
 
     if id is None:
-        profile = current_user_profile
+        profile = current_profile
     else:
         profile = get_object_or_404(Profile, id=id)
 
-        if current_user_profile.role == Profile.Role.OWNER:
+    my_membership = (
+        FamilyMember.objects
+        .filter(profile=current_profile)
+        .select_related("family")
+        .first()
+    )
+
+    target_membership = (
+        FamilyMember.objects
+        .filter(profile=profile, family=my_membership.family)
+        .first()
+        if my_membership else None
+    )
+
+    if id is not None:
+
+        if my_membership and my_membership.role == Profile.Role.OWNER:
             pass
-        elif current_user_profile.role == Profile.Role.ADMIN:
-            if profile.family != current_user_profile.family:
+
+
+        elif my_membership and my_membership.role == Profile.Role.ADMIN:
+            if not target_membership:
                 return render(request, "403.html", status=403)
+
         else:
             if profile.user != request.user:
                 return render(request, "403.html", status=403)
 
-    return render(request, "storage/profile.html", {"profile": profile})
+    return render(
+        request,
+        "storage/profile.html",
+        {
+            "profile": profile,
+            "membership": target_membership,
+        },
+    )
 
 
 @login_required
 def edit_profile(request, id):
-    profile = get_object_or_404(Profile, id)
+    profile = get_object_or_404(Profile, id=id)
 
-    if request.user != profile.user and request.user.profile.role != Profile.Role.OWNER:
-        return redirect("profile_detail", id=request.user.id)
+    my_membership = (
+        FamilyMember.objects
+        .filter(profile=request.user.profile)
+        .select_related("family")
+        .first()
+    )
+
+    target_membership = (
+        FamilyMember.objects
+        .filter(profile=profile, family=my_membership.family)
+        .first()
+        if my_membership else None
+    )
+
+    if (
+        request.user != profile.user
+        and (not my_membership or my_membership.role != Profile.Role.OWNER)
+    ):
+        return redirect("profile_detail", id=request.user.profile.id)
 
     if request.method == "POST":
-        profile.display_name = request.POST.get("display_name")
+        profile.display_name = request.POST.get("display_name", profile.display_name)
+
         if request.FILES.get("profile_pic"):
             profile.profile_pic = request.FILES["profile_pic"]
-        if request.user.profile.role == Profile.Role.OWNER and request.POST.get("role"):
-            profile.role = request.POST.get("role")
+
+        if (
+            my_membership
+            and my_membership.role == Profile.Role.OWNER
+            and target_membership
+            and request.POST.get("role")
+        ):
+            target_membership.role = request.POST.get("role")
+            target_membership.save()
+
         profile.save()
         return redirect("profile_detail", id=profile.id)
 
-    return render(request, "storage/edit_profile.html", {"profile": profile})
+    return render(
+        request,
+        "storage/edit_profile.html",
+        {
+            "profile": profile,
+            "membership": target_membership,
+        },
+    )
 
 
 # start premisions edit
@@ -405,9 +457,6 @@ def other_item_delete(request, slug):
 def food_edit(request, slug):
     food = get_object_or_404(Food_items, slug=slug)
 
-    if request.user.profile.role != Profile.Role.OWNER and Profile.Role.ADMIN:
-        return render(request, "403.html", status=403)
-
     if request.method == "POST":
         form = FoodForm(request.POST, request.FILES, instance=food)
         if form.is_valid():
@@ -425,9 +474,6 @@ def food_edit(request, slug):
 @permission_required("storage.change_other_items", raise_exception=True)
 def other_edit(request, slug):
     other = get_object_or_404(Other_items, slug=slug)
-
-    if request.user.profile.role != Profile.Role.OWNER and Profile.Role.ADMIN:
-        return render(request, "403.html", status=403)
 
     if request.method == "POST":
         form = OtherForm(request.POST, request.FILES, instance=other)
@@ -451,6 +497,13 @@ def all_members(request):
     return render(
         request, "storage/members.html", {"family": family, "members": members}
     )
+
+@login_required
+def all_members(request):
+    family = request.user.profile.family
+    members = (family.memberships.select_related("profile", "profile__user").all())
+    return render(request,"storage/members.html",{"family": family,"members": members,})
+
 
 
 @login_required
@@ -596,13 +649,35 @@ def expired_items(request):
 
     return render(request, "storage/expired_items.html", {"foods": expired_foods})
 
+@login_required
+def place_back_expired_items(request, slug):
+    item = get_object_or_404(
+        Food_items,
+        slug=slug,
+        family=request.user.profile.family,
+        is_active=False,
+    )
+
+    ItemExpiry.objects.create(
+        food_item=item,
+        moved_by=request.user,
+        source="Food_items",
+    )
+
+    item.is_active = True
+    item.restored = True
+    item.restored_on = timezone.now()
+    item.save(update_fields=["is_active", "restored", "restored_on"])
+
+    return redirect("food_detail", slug=item.slug)
+
 
 # see all the food in user's family
 @login_required
 def all_shopping_list(request):
     user_family = request.user.profile.family
     shop_lists = ShoppingList.objects.filter(family=user_family, is_active=True)
-    return render(request, "storage/shoppingLists.html", {"lists": shop_lists})
+    return render(request, "storage/shopping_lists.html", {"lists": shop_lists})
 
 
 # shopping

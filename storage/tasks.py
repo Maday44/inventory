@@ -15,9 +15,10 @@ def check_expired_items():
         item.deleted_on = timezone.now()
         item.save()
 
-        family_member = item.family.members.first()
+        family_member = item.family.memberships.first()
+        # email function needs work 
         if family_member:
-            family_email = family_member.user.email
+            family_email = family_member.profile.user.email
             send_mail(
                 subject=f"'{item.title}' has expired!",
                 message=f"Your item '{item.title}' expired on {item.exp_date}.",

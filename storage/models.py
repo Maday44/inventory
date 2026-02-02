@@ -210,11 +210,7 @@ class Profile(models.Model):
         default="profile_pics/default_profile_pic.jpg",
         upload_to="profile_pic/personal_images",
     )
-    # family = models.ForeignKey(
-    #     "Family", on_delete=models.CASCADE, related_name="members", null=True
-    # )
     display_name = models.CharField(max_length=512)
-    # role = models.CharField(max_length=10, choices=Role.choices)
 
     theme = models.CharField(max_length=10, choices=THEME_COLOUR, default="light")
     notifications_enabled = models.BooleanField(default=True)
@@ -228,12 +224,18 @@ class Profile(models.Model):
         if membership:
             return membership.family
 
-        # Auto-fix: create a family if missing
         family = Family.objects.create(
             name=f"{self.display_name}'s Family",
             owner=self,
         )
         return family
+    
+    @property
+    def role_display(self):
+        membership = self.memberships.select_related("family").first()
+        if membership:
+            return membership.get_role_display()
+        return "User"
 
     def __str__(self):
         membership = self.memberships.first()
@@ -437,10 +439,6 @@ class Shopitems(models.Model):
 
 @receiver(post_save, sender=User)
 def assign_permissions(sender, instance, created, **kwargs):
-    """
-    Assign permissions to a user after creation.
-    Does NOT create a Profile if it already exists to avoid UNIQUE constraint errors.
-    """
     if not created:
         return
 

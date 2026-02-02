@@ -2,16 +2,22 @@
 {% block content %}
 {% include "storage/navbar.html" %}
 <h2>Expired Items</h2>
-
+<!-- chnage the layout to be like shopping item list /christmas-shopping-2/ -->
 {% if foods %}
   <ul>
     {% for food in foods %}
       <li>
         {{ food.title }} - Expired on {{ food.exp_date }}
+            "change_itemexpiry",
+      {% if perms.storage.change_itemexpiry %}
         <a href="{% url 'restore_item' food.id %}" class="btn btn-success btn-sm">Restore</a>
+      {% endif %}
+      {% if perms.storage.delete_itemexpiry %}
         <a href="{% url 'delete_item' food.id %}" class="btn btn-sm btn-danger">Delete</a>
+      {% endif %}
 
       </li>
+      <br>
     {% endfor %}
   </ul>
 {% else %}
