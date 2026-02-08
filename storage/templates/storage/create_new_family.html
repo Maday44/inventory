@@ -1,0 +1,5 @@
+<form method="post" action="{% url 'create_family' %}">
+  {% csrf_token %}
+  <input type="text" name="name" placeholder="Family name" required>
+  <button type="submit">Create Family</button>
+</form>

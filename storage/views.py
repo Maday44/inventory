@@ -16,6 +16,8 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from uuid import UUID
+from django.http import HttpResponse
 
 from .forms import *
 from .models import Food_items, Other_items, Profile
@@ -40,29 +42,37 @@ def login(request):
 
 
 def callback(request):
+    token_data = oauth.auth0.authorize_access_token(request)
+    userinfo = token_data["userinfo"]
+    email = userinfo.get("email").lower()
+
     try:
-        token = oauth.auth0.authorize_access_token(request)
-        userinfo = token["userinfo"]
-
-        email = userinfo.get("email")
-        if not email:
+        user = User.objects.get(email__iexact=email)
+        is_new_user = False
+    except User.DoesNotExist:
+        # check if user came via invite
+        invite_token = request.session.get("invite_token")
+        if invite_token:
+            # Create User + Profile automatically
+            user = User.objects.create_user(
+                username=email.split("@")[0],
+                email=email,
+                password=User.objects.make_random_password(),
+            )
+            Profile.objects.create(user=user, display_name=user.username)
+            is_new_user = True
+        else:
             return redirect(reverse("no_account"))
 
-        email = email.lower()
+    django_login(request, user)
+    request.session["user"] = userinfo
 
-        try:
-            user = User.objects.get(email__iexact=email)
-        except User.DoesNotExist:
-            return redirect(reverse("no_account"))
+    # If user came from invite, redirect back to join_family
+    invite_token = request.session.pop("invite_token", None)
+    if is_new_user and invite_token:
+        return redirect("join_family", token=invite_token)
 
-        django_login(request, user)
-        request.session["user"] = userinfo
-
-        return redirect(reverse("view_all_items"))
-
-    except Exception as e:
-        print("CALLBACK ERROR:", e)
-        return redirect(reverse("no_account"))
+    return redirect(reverse("view_all_items"))
 
 
 def logout(request):
@@ -95,38 +105,124 @@ def custom_logout(request):
         return redirect("/")
 
 
+@login_required
 def generate_invite(request, family_id):
     family = get_object_or_404(Family, id=family_id)
+    profile = request.user.profile
+
+    if not family.user_role(profile):
+        return JsonResponse({"error": "Permission denied"}, status=403)
 
     invite = FamilyInvite.objects.create(family=family)
 
-    invite_link = request.build_absolute_uri(f"/join-family/{invite.token}/")
+    invite_link = request.build_absolute_uri(
+        reverse("join_family", args=[invite.token])
+    )
 
     return JsonResponse({"invite_link": invite_link})
 
+from django.utils.crypto import get_random_string
+from django.contrib.auth import login as django_login
 
-@login_required
+
 def join_family(request, token):
+    # Get invite
     invite = get_object_or_404(FamilyInvite, token=token, is_used=False)
-
     family = invite.family
-    family.members.add(request.user)
 
-    invite.is_used = True
-    invite.save()
+    # If user is logged in
+    if request.user.is_authenticated:
+        profile = request.user.profile
 
-    return redirect("family_detail", family_id=family.id)
+        # Add to family only if not already a member
+        if not FamilyMember.objects.filter(family=family, profile=profile).exists():
+            FamilyMember.objects.create(
+                family=family,
+                profile=profile,
+                role=Profile.Role.USER
+            )
+
+        # Mark invite as used
+        invite.is_used = True
+        invite.save()
+
+        return redirect("family_info", family_id=family.id)
+
+    # Not logged in → show signup form
+    if request.method == "POST":
+        form = InviteSignupForm(request.POST, request.FILES)
+        if form.is_valid():
+            email = form.cleaned_data["email"]
+            username = form.cleaned_data["username"]
+            display_name = form.cleaned_data["display_name"]
+            password = form.cleaned_data["password"]
+            profile_pic = form.cleaned_data.get("profile_pic")
+
+            # Create User
+            user = User.objects.create_user(username=username, email=email)
+            user.set_password(password)
+            user.save()
+
+            # Create Profile WITHOUT assigning .family
+            profile = Profile.objects.create(user=user, display_name=display_name)
+            if profile_pic:
+                profile.profile_pic = profile_pic
+                profile.save()
+
+            # Add to family via FamilyMember
+            FamilyMember.objects.create(
+                family=family,
+                profile=profile,
+                role=Profile.Role.USER
+            )
+
+            # Mark invite as used
+            invite.is_used = True
+            invite.save()
+
+            # Log in new user
+            django_login(request, user)
+
+            return redirect("family_info", family_id=family.id)
+    else:
+        form = InviteSignupForm()
+
+    return render(request, "storage/signup.html", {"form": form, "family": family})
 
 
 @login_required
 def create_family(request):
     if request.method == "POST":
         name = request.POST.get("name")
+        profile = request.user.profile
 
-        family = Family.objects.create(name=name, owner=request.user)
-        family.members.add(request.user)
+        family = Family.objects.create(
+            name=name,
+            owner=profile
+        )
 
-        return redirect("family_detail", family_id=family.id)
+        family.members.add(profile)
+
+        return redirect("family_info", family_id=family.id)
+
+@login_required
+def family_info(request, family_id):
+    family = get_object_or_404(Family, id=family_id)
+    profile = request.user.profile
+
+    is_admin_or_owner = family.user_role(profile)
+
+    members = family.memberships.select_related("profile").all()
+
+    return render(
+        request,
+        "storage/family_info.html",
+        {
+            "family": family,
+            "members": members,
+            "is_admin_or_owner": is_admin_or_owner,
+        }
+    )
 
 
 @login_required
@@ -142,6 +238,7 @@ def add_food(request):
     else:
         form = FoodForm()
 
+    messages.success(request, f"{food.title} has now been added'")
     return render(request, "storage/add_food.html", {"form": form})
 
 
@@ -158,6 +255,7 @@ def add_other_items(request):
     else:
         form = OtherForm()
 
+    messages.success(request, f"{other.title} has now been added")
     return render(request, "storage/add_other.html", {"form": form})
 
 
@@ -219,7 +317,7 @@ def food_detail(request, slug):
     return render(
         request,
         "storage/food_detail.html",
-        {"food": food, "profile": request.user.profile},
+        {"food": food, "profile": request.user.profile, "today": now().date()},
     )
 
 
@@ -438,6 +536,7 @@ def food_item_delete(request, slug):
         food.delete()
         return redirect(f"{reverse('all_food')}?success=1")
 
+    messages.success(request, f"{food.title} has now been deleted")
     return render(request, "storage/confirm_delete.html", {"food": food})
 
 
@@ -449,6 +548,7 @@ def other_item_delete(request, slug):
         other.delete()
         return redirect(f"{reverse('all_other_items')}?success=1")
 
+    messages.success(request, f"{other.title} has now been deleted")
     return render(request, "storage/confirm_delete.html", {"other": other})
 
 
@@ -464,7 +564,8 @@ def food_edit(request, slug):
             return redirect(f"{reverse('food-detail', args=[food.slug])}?success=1")
     else:
         form = FoodForm(instance=food)
-
+    
+    messages.success(request, f"{food.title} has now been edited")
     return render(
         request, "storage/add_food.html", {"form": form, "food": food, "is_edit": True}
     )
@@ -483,19 +584,11 @@ def other_edit(request, slug):
     else:
         form = OtherForm(instance=other)
 
+    messages.success(request, f"{other.title} has now been deleted")
     return render(
         request,
         "storage/add_other.html",
         {"form": form, "other": other, "is_edit": True},
-    )
-
-
-@login_required
-def all_members(request):
-    family = request.user.profile.family
-    members = family.members.select_related("user").all()
-    return render(
-        request, "storage/members.html", {"family": family, "members": members}
     )
 
 @login_required
@@ -503,7 +596,6 @@ def all_members(request):
     family = request.user.profile.family
     members = (family.memberships.select_related("profile", "profile__user").all())
     return render(request,"storage/members.html",{"family": family,"members": members,})
-
 
 
 @login_required
@@ -522,7 +614,6 @@ def edit_member_view(request, member_id):
             member.role = new_role
             member.save()
 
-            # Update selected permissions
             perms = form.cleaned_data["permissions"]
             user.user_permissions.set(perms)
 
@@ -531,7 +622,7 @@ def edit_member_view(request, member_id):
             )
             return redirect("members")  # replace with your actual URL name
     else:
-        # Pre-fill form with current role and permissions
+
         form = EditUserPermissionsForm(
             initial={
                 "role": member.role,
@@ -640,36 +731,34 @@ def restore_item(request, pk):
 
 @login_required
 def expired_items(request):
-    user_family = request.user.profile.family
+    ordering = request.GET.get("ordering", "exp_date")
     today = timezone.now().date()
 
     expired_foods = Food_items.objects.filter(
-        family=user_family, exp_date__lt=today, is_active=False
-    ).order_by("exp_date")
+        family=request.user.profile.family, exp_date__lt=today, is_active=False
+    ).order_by(ordering)
 
     return render(request, "storage/expired_items.html", {"foods": expired_foods})
 
+
 @login_required
-def place_back_expired_items(request, slug):
+def place_in_expired_items(request, slug):
     item = get_object_or_404(
         Food_items,
         slug=slug,
         family=request.user.profile.family,
-        is_active=False,
     )
 
     ItemExpiry.objects.create(
-        food_item=item,
-        moved_by=request.user,
-        source="Food_items",
+        item=item,
+        exp_date=item.exp_date,
+        is_active=True,
     )
 
-    item.is_active = True
-    item.restored = True
-    item.restored_on = timezone.now()
-    item.save(update_fields=["is_active", "restored", "restored_on"])
-
-    return redirect("food_detail", slug=item.slug)
+    item.is_active = False
+    item.save(update_fields=["is_active"])
+    messages.success(request, f"{item.title} is now in 'Expired Items'")
+    return redirect("all_food")
 
 
 # see all the food in user's family
@@ -705,7 +794,8 @@ def add_shopping_list(request):
             return redirect("all_shopping_list")
     else:
         form = ShoppingListForm(user=request.user)
-
+    
+    messages.success(request, f"{shopping_list.title} has now been added")
     return render(request, "storage/add_shopping_list.html", {"form": form})
 
 
@@ -721,6 +811,7 @@ def edit_shopping_list(request, slug):
     else:
         form = ShoppingListForm(instance=shopping_list)
 
+    messages.success(request, f"{shopping_list.title} has now been edited")
     return render(
         request,
         "storage/edit_shopping_list.html",
@@ -736,6 +827,7 @@ def delete_shopping_list(request, slug):
         shopping_list.delete()
         return redirect(f"{reverse('all_shopping_list')}?success=1")
 
+    messages.success(request, f"{shopping_list.title} has now been deleted")
     return render(
         request, "storage/confirm_delete.html", {"shopping_list": shopping_list}
     )
@@ -757,6 +849,8 @@ def add_shopping_item(request, slug):
             return redirect("view_shopping_list", slug=slug)
     else:
         form = ShoppingItemForm()
+    
+    messages.success(request, f"{item.item_name} has now been added")
     return render(
         request, "storage/addShopItem.html", {"form": form, "shop_list": shop_list}
     )
@@ -773,6 +867,8 @@ def edit_shopping_item(request, slug):
             return redirect("view_shopping_list", slug=item.shopping_list.slug)
     else:
         form = ShoppingItemForm(instance=item)
+    
+    messages.success(request, f"{item.item_name} has now been edited")
     return render(request, "storage/addShopItem.html", {"form": form, "item": item})
 
 
@@ -782,6 +878,8 @@ def delete_shopping_item(request, slug):
     item = get_object_or_404(Shopitems, slug=slug)
     slug = item.shopping_list.slug
     item.delete()
+
+    messages.success(request, f"{item.item_name} has now been deleted")
     return redirect("view_shopping_list", slug=slug)
 
 
@@ -825,6 +923,7 @@ def send_mail_shopping(request, slug):
         except Exception as e:
             result = f"Error sending email: {e}"
 
+    messages.success(request, f"Email has now been sent")
     return render(
         request,
         "storage/email/shoppingEmail.html",

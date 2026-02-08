@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ family.name }} | Family</title>
+
+</head>
+<body>
+
+<h1>{{ family.name }}</h1>
+
+<h2>Members</h2>
+<ul>
+    {% for membership in members %}
+        <li>
+            {{ membership.profile.display_name }}
+            <span class="badge {{ membership.role }}">
+                {{ membership.get_role_display }}
+            </span>
+        </li>
+    {% empty %}
+        <li>No members yet.</li>
+    {% endfor %}
+</ul>
+
+{% if is_admin_or_owner %}
+<hr>
+<div class="invite-box">
+    <h2>Invite Members</h2>
+    <button id="invite-btn">Generate Invite Link</button>
+    <input type="text" id="invite-link" readonly placeholder="Invite link will appear here">
+    <button id="copy-btn" style="margin-top: 8px;">Copy Link</button>
+</div>
+{% endif %}
+
+{% if is_admin_or_owner %}
+<script>
+const inviteBtn = document.getElementById("invite-btn");
+const inviteInput = document.getElementById("invite-link");
+const copyBtn = document.getElementById("copy-btn");
+
+inviteBtn.addEventListener("click", () => {
+  fetch("{% url 'generate_invite' family.id %}")
+    .then(res => res.json())
+    .then(data => { inviteInput.value = data.invite_link; })
+    .catch(err => { alert("Error generating invite link"); });
+});
+
+copyBtn.addEventListener("click", () => {
+  if(!inviteInput.value) { alert("Generate a link first"); return; }
+  navigator.clipboard.writeText(inviteInput.value);
+  alert("Invite link copied!");
+});
+</script>
+{% endif %}
+
+</body>
+</html>

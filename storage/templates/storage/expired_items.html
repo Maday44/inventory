@@ -1,14 +1,51 @@
 {% extends "base.html" %}
 {% block content %}
 {% include "storage/navbar.html" %}
-<h2>Expired Items</h2>
-<!-- chnage the layout to be like shopping item list /christmas-shopping-2/ -->
-{% if foods %}
+
+<div class="container py-5">
+
+  <div class="d-flex align-items-center mb-5">
+
+    <div class="flex-grow-1">
+      <div class="dropdown">
+        <button class="dropbtn">Sort by...</button>
+        <div class="dropdown-content">
+          <a href="?ordering=title">Name (A to Z)</a>
+          <a href="?ordering=-title">Name (Z to A)</a>
+          <a href="?ordering=-quantity">Quantity (High to Low)</a>
+          <a href="?ordering=quantity">Quantity (Low to High)</a>
+          <a href="?ordering=exp_date">Expiry Date</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex-shrink-0 text-center">
+      <h2 class="fw-bold mb-0">
+        <a href="{% url 'all_food' %}" class="nav-link text-dark px-3">
+          Expired Items
+        </a>
+      </h2>
+    </div>
+
+    <div class="flex-grow-1 text-end">
+      {% if perms.storage.add_food_items %}
+
+        <a
+          href="{% url 'choose_add_food' %}"
+          class="btn btn-success px-4 py-2 rounded-4 shadow-sm"
+        >
+          + Add Expired Food
+        </a>
+      {% endif %}
+    </div>
+
+  </div>
+
+  {% if foods %}
   <ul>
     {% for food in foods %}
       <li>
         {{ food.title }} - Expired on {{ food.exp_date }}
-            "change_itemexpiry",
       {% if perms.storage.change_itemexpiry %}
         <a href="{% url 'restore_item' food.id %}" class="btn btn-success btn-sm">Restore</a>
       {% endif %}
@@ -23,4 +60,6 @@
 {% else %}
   <p>No expired items.</p>
 {% endif %}
+
+</div>
 {% endblock %}

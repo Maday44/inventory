@@ -186,3 +186,10 @@ class EditUserPermissionsForm(forms.Form):
         self.fields["permissions"].label_from_instance = (
             lambda obj: PERMISSION_LABELS.get(obj.codename, str(obj))
         )
+
+class InviteSignupForm(forms.Form):
+    profile_pic = forms.ImageField(required=False)
+    username = forms.CharField(max_length=150)
+    display_name = forms.CharField(max_length=150)
+    password = forms.CharField(widget=forms.PasswordInput)
+    email = forms.EmailField()

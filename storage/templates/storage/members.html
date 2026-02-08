@@ -5,6 +5,11 @@
 
 <div class="container mt-4">
   <h2>{{ family.name }}'s Members</h2>
+  <button>
+    <a href="{% url 'family_info' family.id%}">
+      + Invite new members
+    </a>
+    </button>
   <div class="row">
     {% for member in members %}
       <div class="col-md-4 mb-3">

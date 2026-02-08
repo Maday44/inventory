@@ -211,6 +211,7 @@ class Profile(models.Model):
         upload_to="profile_pic/personal_images",
     )
     display_name = models.CharField(max_length=512)
+    families = models.ManyToManyField("Family", related_name="members", blank=True)
 
     theme = models.CharField(max_length=10, choices=THEME_COLOUR, default="light")
     notifications_enabled = models.BooleanField(default=True)
@@ -249,6 +250,18 @@ class Family(models.Model):
     owner = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name="owned_families"
     )
+
+    def user_role(self, profile):
+        # OWNER of family
+        if self.owner == profile:
+            return True
+
+        # ADMIN in memberships
+        return self.memberships.filter(
+            profile=profile,
+            role__in=[Profile.Role.ADMIN, Profile.Role.OWNER]
+        ).exists()
+
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
