@@ -12,41 +12,39 @@ urlpatterns = [
     path("logout/", views.logout, name="logouts"),
     path("callback/", views.callback, name="callback"),
     path("no_account/", views.no_account, name="no_account"),
-
     # new user to join
     path("family/create/", views.create_family, name="create_family"),
-    path("family/invite/<int:family_id>/", views.generate_invite, name="generate_invite"),
-    path("join-family/<uuid:token>/", views.join_family, name = "join_family"),
+    path(
+        "family/invite/<int:family_id>/", views.generate_invite, name="generate_invite"
+    ),
+    path("join-family/<uuid:token>/", views.join_family, name="join_family"),
     path("fam/<int:family_id>/", views.family_info, name="family_info"),
-
-
     # food
     path("all_food_items/", views.all_food, name="all_food"),
     path("food/<slug:slug>/", views.food_detail, name="food_detail"),
     path("add_food/", views.add_food, name="add_food"),
     path("choose_add_food/", views.choose_add_food, name="choose_add_food"),
     path("search_food/", views.search_food, name="search_food"),
-    path("food/<slug:slug>/expired/", views.place_in_expired_items, name="place_in_expired_items"),
+    path(
+        "food/<slug:slug>/expired/",
+        views.place_in_expired_items,
+        name="place_in_expired_items",
+    ),
     # path("searching_food/", views.search_openfoodfacts, name="searching_food"),
     path("api/search-food/", views.search_openfoodfacts, name="search_food_api"),
     path("food/<slug:slug>/delete", views.food_item_delete, name="food-delete"),
     path("food/<slug:slug>/edit/", views.food_edit, name="food_edit"),
-
     # cateegories
     path("categories/", views.category_list, name="category"),
     path("categories/delete/<int:pk>/", views.delete_category, name="delete_category"),
-
     # exp
     # path("expiry/manage/<int:item_id>/", views.manage_expiry, name="manage_expiry"),
     path("expiry/delete/<int:pk>/", views.delete_expiry, name="delete_expiry"),
-
     # Item archiving/restoring
     path("item/delete/<int:pk>/", views.delete_item, name="delete_item"),
     path("item/restore/<int:pk>/", views.restore_item, name="restore_item"),
-
     # Expired items page
     path("items/expired/", views.expired_items, name="expired_items"),
-
     # other items
     path("all_other_items/", views.all_other, name="all_other_items"),
     path("other/<slug:slug>/", views.other_detail, name="other_detail"),
@@ -54,7 +52,6 @@ urlpatterns = [
     path("add_other_items/", views.add_other_items, name="add_other"),
     path("other/<slug:slug>/delete/", views.other_item_delete, name="other-delete"),
     path("other/<slug:slug>/edit/", views.other_edit, name="other_edit"),
-
     # shopping
     path("shopping_lists/", views.all_shopping_list, name="all_shopping_list"),
     path("shopping_lists/create/", views.add_shopping_list, name="add_shopping_list"),
@@ -93,7 +90,6 @@ urlpatterns = [
         views.delete_shopping_item,
         name="delete_shopping_item",
     ),
-
     # profile
     path("profile/", views.profile_detail, name="my_profile"),
     path("profile/<int:id>/", views.profile_detail, name="profile_detail"),
@@ -106,4 +102,6 @@ urlpatterns = [
     path("settings/change_password/", views.change_password, name="change_password"),
     path("settings/delete_account/", views.delete_account, name="delete_account"),
     path("settings/change_email/", views.change_email, name="change_email"),
+    path("searchbar/", views.search_bar, name="search_bar"),
+    path("search/", views.search, name="search"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

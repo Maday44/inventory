@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% include "storage/navbar.html" %}
+
+<div class="container py-5">
+    <h3>Search results for "{{ query }}"</h3>
+
+    {% if foods_found %}
+    <h5 class="mt-4">Food Items</h5>
+        <ul class="list-group mt-2">
+        {% for food in foods_found %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                {{ food.title }} - {{ food.quantity }} - Exp: {{ food.exp_date|date:"d M Y" }}
+                <a href="{% url 'food_detail' food.slug %}" class="btn btn-sm btn-outline-secondary">View</a>
+            </li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if others_found %}
+    <h5 class="mt-4">Other Items</h5>
+        <ul class="list-group mt-2">
+        {% for other in others_found %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                {{ other.title }} - {{ other.quantity }}
+                <a href="{% url 'other_detail' other.slug %}" class="btn btn-sm btn-outline-secondary">View</a>
+            </li>
+        {% endfor %}
+        </ul>
+
+    {% endif %}
+    
+    {% if expired_found %}
+    <h5 class="mt-4">Expired Items</h5>
+        <ul class="list-group mt-2">
+        {% for expired in expired_found %}
+            <li class="list-group-item d-flex justify-content-between align-items-center {% if expired.is_expired %}bg-danger text-white{% endif %}">
+                {{ expired.item.title }} - Exp: {{ expired.exp_date|date:"d M Y" }}
+                <a href="{% url 'food_detail' expired.item.slug %}" class="btn btn-sm btn-outline-light">View</a>
+            </li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    
+    {% if shoppinglist_found %}
+    <h5 class="mt-4">Shopping Lists</h5>
+        <ul class="list-group mt-2">
+        {% for sl in shoppinglist_found %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                {{ sl.title }}
+                <a href="{% url 'view_shopping_list' sl.slug %}" class="btn btn-sm btn-outline-secondary">View</a>
+            </li>
+        {% endfor %}
+        </ul>
+
+    {% endif %}
+
+    {% if not foods_found and not others_found and not expired_found and not shoppinglist_found and not shopitems_found %}
+    <div class="alert alert-danger text-center mt-4" role="alert">
+        <i class="bi bi-exclamation-circle-fill me-2"></i>
+        "<strong>{{ query }}</strong>" was not found.
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

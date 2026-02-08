@@ -16,7 +16,7 @@ def check_expired_items():
         item.save()
 
         family_member = item.family.memberships.first()
-        # email function needs work 
+        # email function needs work
         if family_member:
             family_email = family_member.profile.user.email
             send_mail(

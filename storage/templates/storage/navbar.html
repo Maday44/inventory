@@ -23,7 +23,7 @@
       <div class="dropdown-nav">
         <button class="dropbtn-nav">{% trans 'More' %}</button>
         <div class="dropdown-content-nav">
-          <a href="">{% trans 'Search' %}</a>
+          <a href="{% url 'search_bar' %}">{% trans 'Search' %}</a>
           <a href="{% url 'expired_items' %}">{% trans 'Expired Foods' %}</a>
           <a href="{% url 'expired_items' %}">{% trans 'Recently deleted' %}</a>
           <a href="{% url 'settings' %}">{% trans 'Settings' %}</a>

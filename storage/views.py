@@ -1,5 +1,6 @@
 import os
 from urllib.parse import quote_plus, urlencode
+from uuid import UUID
 
 import requests
 from authlib.integrations.django_client import OAuth
@@ -12,12 +13,10 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.core.files.base import ContentFile
 from django.core.mail import send_mail
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from uuid import UUID
-from django.http import HttpResponse
 
 from .forms import *
 from .models import Food_items, Other_items, Profile
@@ -121,8 +120,9 @@ def generate_invite(request, family_id):
 
     return JsonResponse({"invite_link": invite_link})
 
-from django.utils.crypto import get_random_string
+
 from django.contrib.auth import login as django_login
+from django.utils.crypto import get_random_string
 
 
 def join_family(request, token):
@@ -137,9 +137,7 @@ def join_family(request, token):
         # Add to family only if not already a member
         if not FamilyMember.objects.filter(family=family, profile=profile).exists():
             FamilyMember.objects.create(
-                family=family,
-                profile=profile,
-                role=Profile.Role.USER
+                family=family, profile=profile, role=Profile.Role.USER
             )
 
         # Mark invite as used
@@ -171,9 +169,7 @@ def join_family(request, token):
 
             # Add to family via FamilyMember
             FamilyMember.objects.create(
-                family=family,
-                profile=profile,
-                role=Profile.Role.USER
+                family=family, profile=profile, role=Profile.Role.USER
             )
 
             # Mark invite as used
@@ -196,14 +192,12 @@ def create_family(request):
         name = request.POST.get("name")
         profile = request.user.profile
 
-        family = Family.objects.create(
-            name=name,
-            owner=profile
-        )
+        family = Family.objects.create(name=name, owner=profile)
 
         family.members.add(profile)
 
         return redirect("family_info", family_id=family.id)
+
 
 @login_required
 def family_info(request, family_id):
@@ -221,7 +215,7 @@ def family_info(request, family_id):
             "family": family,
             "members": members,
             "is_admin_or_owner": is_admin_or_owner,
-        }
+        },
     )
 
 
@@ -427,9 +421,10 @@ def search_openfoodfacts(request):
 
     return JsonResponse({"results": results})
 
+
 @login_required
 def profile_detail(request, id=None):
- 
+
     current_profile = request.user.profile
 
     if id is None:
@@ -438,24 +433,23 @@ def profile_detail(request, id=None):
         profile = get_object_or_404(Profile, id=id)
 
     my_membership = (
-        FamilyMember.objects
-        .filter(profile=current_profile)
+        FamilyMember.objects.filter(profile=current_profile)
         .select_related("family")
         .first()
     )
 
     target_membership = (
-        FamilyMember.objects
-        .filter(profile=profile, family=my_membership.family)
-        .first()
-        if my_membership else None
+        FamilyMember.objects.filter(
+            profile=profile, family=my_membership.family
+        ).first()
+        if my_membership
+        else None
     )
 
     if id is not None:
 
         if my_membership and my_membership.role == Profile.Role.OWNER:
             pass
-
 
         elif my_membership and my_membership.role == Profile.Role.ADMIN:
             if not target_membership:
@@ -480,22 +474,21 @@ def edit_profile(request, id):
     profile = get_object_or_404(Profile, id=id)
 
     my_membership = (
-        FamilyMember.objects
-        .filter(profile=request.user.profile)
+        FamilyMember.objects.filter(profile=request.user.profile)
         .select_related("family")
         .first()
     )
 
     target_membership = (
-        FamilyMember.objects
-        .filter(profile=profile, family=my_membership.family)
-        .first()
-        if my_membership else None
+        FamilyMember.objects.filter(
+            profile=profile, family=my_membership.family
+        ).first()
+        if my_membership
+        else None
     )
 
-    if (
-        request.user != profile.user
-        and (not my_membership or my_membership.role != Profile.Role.OWNER)
+    if request.user != profile.user and (
+        not my_membership or my_membership.role != Profile.Role.OWNER
     ):
         return redirect("profile_detail", id=request.user.profile.id)
 
@@ -564,7 +557,7 @@ def food_edit(request, slug):
             return redirect(f"{reverse('food-detail', args=[food.slug])}?success=1")
     else:
         form = FoodForm(instance=food)
-    
+
     messages.success(request, f"{food.title} has now been edited")
     return render(
         request, "storage/add_food.html", {"form": form, "food": food, "is_edit": True}
@@ -591,11 +584,19 @@ def other_edit(request, slug):
         {"form": form, "other": other, "is_edit": True},
     )
 
+
 @login_required
 def all_members(request):
     family = request.user.profile.family
-    members = (family.memberships.select_related("profile", "profile__user").all())
-    return render(request,"storage/members.html",{"family": family,"members": members,})
+    members = family.memberships.select_related("profile", "profile__user").all()
+    return render(
+        request,
+        "storage/members.html",
+        {
+            "family": family,
+            "members": members,
+        },
+    )
 
 
 @login_required
@@ -794,7 +795,7 @@ def add_shopping_list(request):
             return redirect("all_shopping_list")
     else:
         form = ShoppingListForm(user=request.user)
-    
+
     messages.success(request, f"{shopping_list.title} has now been added")
     return render(request, "storage/add_shopping_list.html", {"form": form})
 
@@ -849,7 +850,7 @@ def add_shopping_item(request, slug):
             return redirect("view_shopping_list", slug=slug)
     else:
         form = ShoppingItemForm()
-    
+
     messages.success(request, f"{item.item_name} has now been added")
     return render(
         request, "storage/addShopItem.html", {"form": form, "shop_list": shop_list}
@@ -867,7 +868,7 @@ def edit_shopping_item(request, slug):
             return redirect("view_shopping_list", slug=item.shopping_list.slug)
     else:
         form = ShoppingItemForm(instance=item)
-    
+
     messages.success(request, f"{item.item_name} has now been edited")
     return render(request, "storage/addShopItem.html", {"form": form, "item": item})
 
@@ -1071,3 +1072,52 @@ def change_email(request):
         form = EmailChangeForm(user)
 
     return render(request, "storage/change_email.html", {"form": form})
+
+
+# blog/views.py
+# Search is a function based view that shows the filtered articles whenever the search form is submitted.
+@login_required
+def search_bar(request):
+    return render(request, "storage/search_bar.html")
+
+
+@login_required
+def search(request):
+    query = request.GET.get("q", "").strip()  # search term
+
+    # Initialize all querysets as empty
+    foods_found = Food_items.objects.none()
+    others_found = Other_items.objects.none()
+    expired_found = ItemExpiry.objects.none()
+    shoppinglist_found = ShoppingList.objects.none()
+    shopitems_found = Shopitems.objects.none()
+
+    if query:
+
+        foods_found = Food_items.objects.filter(
+            title__icontains=query, family=request.user.profile.family
+        )
+
+        others_found = Other_items.objects.filter(
+            title__icontains=query, family=request.user.profile.family
+        )
+
+        expired_found = ItemExpiry.objects.filter(
+            item__title__icontains=query, item__family=request.user.profile.family
+        )
+
+        shoppinglist_found = ShoppingList.objects.filter(
+            title__icontains=query, family=request.user.profile.family
+        )
+
+    return render(
+        request,
+        "storage/search_results.html",
+        {
+            "query": query,
+            "foods_found": foods_found,
+            "others_found": others_found,
+            "expired_found": expired_found,
+            "shoppinglist_found": shoppinglist_found,
+        },
+    )

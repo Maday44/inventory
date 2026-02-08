@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% include "storage/navbar.html" %}
+<br>
+<div>
+<form method="get" action="{% url 'search'%}" class="d-flex">
+    <input type="text" name="q" class="form-control me-2" placeholder="Enter an item" value="{{ query }}">
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
+</div>
+
+{% endblock %}

@@ -1,5 +1,6 @@
 import uuid
 from datetime import date, timedelta
+
 from django.contrib.auth.models import Permission, User
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -230,7 +231,7 @@ class Profile(models.Model):
             owner=self,
         )
         return family
-    
+
     @property
     def role_display(self):
         membership = self.memberships.select_related("family").first()
@@ -258,10 +259,8 @@ class Family(models.Model):
 
         # ADMIN in memberships
         return self.memberships.filter(
-            profile=profile,
-            role__in=[Profile.Role.ADMIN, Profile.Role.OWNER]
+            profile=profile, role__in=[Profile.Role.ADMIN, Profile.Role.OWNER]
         ).exists()
-
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
