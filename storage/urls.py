@@ -24,13 +24,11 @@ urlpatterns = [
     path("food/<slug:slug>/", views.food_detail, name="food_detail"),
     path("add_food/", views.add_food, name="add_food"),
     path("choose_add_food/", views.choose_add_food, name="choose_add_food"),
-    path("search_food/", views.search_food, name="search_food"),
     path(
         "food/<slug:slug>/expired/",
         views.place_in_expired_items,
         name="place_in_expired_items",
     ),
-    # path("searching_food/", views.search_openfoodfacts, name="searching_food"),
     path("api/search-food/", views.search_openfoodfacts, name="search_food_api"),
     path("food/<slug:slug>/delete", views.food_item_delete, name="food-delete"),
     path("food/<slug:slug>/edit/", views.food_edit, name="food_edit"),

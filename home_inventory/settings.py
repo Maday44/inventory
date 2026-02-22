@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
     "storage.apps.StorageConfig",
+
 ]
 
 REST_FRAMEWORK = {"DEFAULT_PAGINATION_CLASS": None, "PAGE_SIZE": 10}

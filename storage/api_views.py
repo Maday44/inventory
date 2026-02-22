@@ -4,8 +4,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Family, Food_items, Other_items, User
-from .serializers import (FamSerializer, FoodSerializer, OtherSerializer,
-                          UserSerializer)
+from .serializers import FamSerializer, FoodSerializer, OtherSerializer, UserSerializer
 
 
 class FoodViewSet(viewsets.ModelViewSet):

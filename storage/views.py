@@ -228,11 +228,11 @@ def add_food(request):
             food = form.save(commit=False)
             food.family = request.user.profile.family
             food.save()
+
+            messages.success(request, f"{food.title} has now been added")
             return redirect("all_food")
     else:
         form = FoodForm()
-
-    messages.success(request, f"{food.title} has now been added'")
     return render(request, "storage/add_food.html", {"form": form})
 
 
@@ -245,11 +245,11 @@ def add_other_items(request):
             other = form.save(commit=False)
             other.family = request.user.profile.family
             other.save()
+
+            messages.success(request, f"{other.title} has now been added")
             return redirect("all_other_items")
     else:
         form = OtherForm()
-
-    messages.success(request, f"{other.title} has now been added")
     return render(request, "storage/add_other.html", {"form": form})
 
 
@@ -432,30 +432,23 @@ def profile_detail(request, id=None):
     else:
         profile = get_object_or_404(Profile, id=id)
 
-    my_membership = (
+    membership = (
         FamilyMember.objects.filter(profile=current_profile)
         .select_related("family")
         .first()
     )
 
     target_membership = (
-        FamilyMember.objects.filter(
-            profile=profile, family=my_membership.family
-        ).first()
-        if my_membership
+        FamilyMember.objects.filter(profile=profile, family=membership.family).first()
+        if membership
         else None
     )
 
     if id is not None:
 
-        if my_membership and my_membership.role == Profile.Role.OWNER:
-            pass
-
-        elif my_membership and my_membership.role == Profile.Role.ADMIN:
-            if not target_membership:
-                return render(request, "403.html", status=403)
-
-        else:
+        if membership and membership.role != (
+            Profile.Role.OWNER and Profile.Role.ADMIN
+        ):
             if profile.user != request.user:
                 return render(request, "403.html", status=403)
 
@@ -589,6 +582,7 @@ def other_edit(request, slug):
 def all_members(request):
     family = request.user.profile.family
     members = family.memberships.select_related("profile", "profile__user").all()
+
     return render(
         request,
         "storage/members.html",
@@ -603,17 +597,17 @@ def all_members(request):
 @permission_required("storage.edit_members", raise_exception=True)
 def edit_member_view(request, member_id):
     member = get_object_or_404(
-        Profile, id=member_id, family=request.user.profile.family
+        Profile, id=member_id, memberships__family=request.user.profile.family
     )
     user = member.user
+
+    membership = member.memberships.get(family=request.user.profile.family)
 
     if request.method == "POST":
         form = EditUserPermissionsForm(request.POST)
         if form.is_valid():
-            # Update role
-            new_role = form.cleaned_data["role"]
-            member.role = new_role
-            member.save()
+            membership.role = form.cleaned_data["role"]
+            membership.save()
 
             perms = form.cleaned_data["permissions"]
             user.user_permissions.set(perms)
@@ -621,12 +615,11 @@ def edit_member_view(request, member_id):
             messages.success(
                 request, "Member role and permissions updated successfully."
             )
-            return redirect("members")  # replace with your actual URL name
+            return redirect("members")
     else:
-
         form = EditUserPermissionsForm(
             initial={
-                "role": member.role,
+                "role": membership.role,
                 "permissions": user.user_permissions.filter(codename__in=CODENAMES),
             }
         )
@@ -792,11 +785,12 @@ def add_shopping_list(request):
             shopping_list.family = request.user.profile.family
             shopping_list.created_by = request.user
             shopping_list.save()
+
+            messages.success(request, f"{shopping_list.title} has now been added")
             return redirect("all_shopping_list")
     else:
         form = ShoppingListForm(user=request.user)
 
-    messages.success(request, f"{shopping_list.title} has now been added")
     return render(request, "storage/add_shopping_list.html", {"form": form})
 
 
