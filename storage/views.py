@@ -126,65 +126,73 @@ from django.utils.crypto import get_random_string
 
 
 def join_family(request, token):
-    # Get invite
     invite = get_object_or_404(FamilyInvite, token=token, is_used=False)
     family = invite.family
 
-    # If user is logged in
+    # ==============================
+    # Logged-in user joins
+    # ==============================
     if request.user.is_authenticated:
         profile = request.user.profile
 
-        # Add to family only if not already a member
-        if not FamilyMember.objects.filter(family=family, profile=profile).exists():
-            FamilyMember.objects.create(
-                family=family, profile=profile, role=Profile.Role.USER
-            )
+        FamilyMember.objects.get_or_create(
+            profile=profile,
+            family=family,
+        )
 
-        # Mark invite as used
         invite.is_used = True
-        invite.save()
+        invite.save(update_fields=["is_used"])
 
         return redirect("family_info", family_id=family.id)
 
-    # Not logged in → show signup form
+    # ==============================
+    # Signup flow
+    # ==============================
     if request.method == "POST":
         form = InviteSignupForm(request.POST, request.FILES)
+
         if form.is_valid():
-            email = form.cleaned_data["email"]
-            username = form.cleaned_data["username"]
-            display_name = form.cleaned_data["display_name"]
-            password = form.cleaned_data["password"]
-            profile_pic = form.cleaned_data.get("profile_pic")
-
-            # Create User
-            user = User.objects.create_user(username=username, email=email)
-            user.set_password(password)
-            user.save()
-
-            # Create Profile WITHOUT assigning .family
-            profile = Profile.objects.create(user=user, display_name=display_name)
-            if profile_pic:
-                profile.profile_pic = profile_pic
-                profile.save()
-
-            # Add to family via FamilyMember
-            FamilyMember.objects.create(
-                family=family, profile=profile, role=Profile.Role.USER
+            user = User.objects.create_user(
+                username=form.cleaned_data["username"],
+                email=form.cleaned_data["email"],
+                password=form.cleaned_data["password"],
             )
 
-            # Mark invite as used
-            invite.is_used = True
-            invite.save()
+            # Profile will be auto-created by signal,
+            # but we update display name properly
+            profile = user.profile
+            profile.display_name = form.cleaned_data["display_name"]
 
-            # Log in new user
+            profile_pic = form.cleaned_data.get("profile_pic")
+            if profile_pic:
+                profile.profile_pic = profile_pic
+
+            profile.save()
+
+            # Create membership (role defaults to USER)
+            FamilyMember.objects.create(
+                profile=profile,
+                family=family,
+            )
+
+            invite.is_used = True
+            invite.save(update_fields=["is_used"])
+
             django_login(request, user)
 
             return redirect("family_info", family_id=family.id)
+
     else:
         form = InviteSignupForm()
 
-    return render(request, "storage/signup.html", {"form": form, "family": family})
-
+    return render(
+        request,
+        "storage/signup.html",
+        {
+            "form": form,
+            "family": family,
+        },
+    )
 
 @login_required
 def create_family(request):
@@ -520,9 +528,9 @@ def food_item_delete(request, slug):
     food = get_object_or_404(Food_items, slug=slug)
     if request.method == "POST":
         food.delete()
+        messages.success(request, f"{food.title} has now been deleted")
         return redirect(f"{reverse('all_food')}?success=1")
 
-    messages.success(request, f"{food.title} has now been deleted")
     return render(request, "storage/confirm_delete.html", {"food": food})
 
 
@@ -547,11 +555,11 @@ def food_edit(request, slug):
         form = FoodForm(request.POST, request.FILES, instance=food)
         if form.is_valid():
             form.save()
+            messages.success(request, f"{food.title} has now been edited")
             return redirect(f"{reverse('food-detail', args=[food.slug])}?success=1")
     else:
         form = FoodForm(instance=food)
 
-    messages.success(request, f"{food.title} has now been edited")
     return render(
         request, "storage/add_food.html", {"form": form, "food": food, "is_edit": True}
     )
@@ -957,7 +965,7 @@ def user_settings(request):
     return render(request, "storage/settings.html", {"profile": profile})
 
 
-# email notificatyion to work when this happens
+
 @login_required
 def change_password(request):
     result = None
@@ -1047,7 +1055,6 @@ def change_email(request):
             user.email = new_email
             user.save()
 
-            # Email notification
             send_mail(
                 subject="Email address changed",
                 message=(
@@ -1115,3 +1122,38 @@ def search(request):
             "shoppinglist_found": shoppinglist_found,
         },
     )
+
+def recipe(request):
+  recipes = Recipe.objects.all()
+
+  return render(request, 'storage/recipe.html', {'recipes': recipes, 
+                                                 "family_name": request.user.profile.family.name})
+
+@login_required
+def recipe_detail(request, slug):
+    recipe = get_object_or_404(Recipe, slug=slug, family=request.user.profile.family)
+    return render(
+        request,
+        "storage/recipe_detail.html",
+        {"recipe": recipe, "profile": request.user.profile},
+    )
+
+@login_required
+@permission_required("storage.add_food_items", raise_exception=True)
+def add_recipe(request):
+    if request.method == "POST":
+        form = RecipeForm(request.POST, request.FILES)
+        if form.is_valid():
+            recipe = form.save(commit=False)
+            recipe.family = request.user.profile.family
+            recipe.save()
+
+            messages.success(request, f"{recipe.title} has now been added")
+            return redirect("recipes")
+    else:
+        form = RecipeForm()
+    return render(request, "storage/add_recipe.html", {"form": form})
+
+
+# more here
+# https://dev.to/domvacchiano/create-a-recipe-app-in-django-tutorial-5hh

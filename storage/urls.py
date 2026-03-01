@@ -18,7 +18,7 @@ urlpatterns = [
         "family/invite/<int:family_id>/", views.generate_invite, name="generate_invite"
     ),
     path("join-family/<uuid:token>/", views.join_family, name="join_family"),
-    path("fam/<int:family_id>/", views.family_info, name="family_info"),
+    path("family/<int:family_id>/", views.family_info, name="family_info"),
     # food
     path("all_food_items/", views.all_food, name="all_food"),
     path("food/<slug:slug>/", views.food_detail, name="food_detail"),
@@ -102,4 +102,9 @@ urlpatterns = [
     path("settings/change_email/", views.change_email, name="change_email"),
     path("searchbar/", views.search_bar, name="search_bar"),
     path("search/", views.search, name="search"),
+
+    #recipe
+    path("recipes/", views.recipe, name="recipes"),
+    path("recipe/<slug:slug>/", views.recipe_detail, name="recipe_detail"),
+    path("add_recipe/", views.add_recipe, name="add_recipe"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

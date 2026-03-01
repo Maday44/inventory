@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>{{ family.name }} | Family</title>
 
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block content %}
+{% include "storage/navbar.html" %}
 
 <h1>{{ family.name }}</h1>
 
@@ -54,5 +51,4 @@ copyBtn.addEventListener("click", () => {
 </script>
 {% endif %}
 
-</body>
-</html>
+{% endblock %}

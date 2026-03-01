@@ -448,6 +448,32 @@ class Shopitems(models.Model):
         if not (self.food_item or self.other_item or self.item_name.strip()):
             raise ValidationError("Provide either a linked item or a manual item name.")
 
+class Recipe(models.Model):
+    family = models.ForeignKey(
+        "Family", on_delete=models.CASCADE, related_name="recipes"
+    )
+    picture = models.ImageField(
+        default="items/default_meal.jpg",
+        upload_to="items/actual_items/recipes",
+    )
+    title = models.CharField(max_length=100)
+    category = models.ForeignKey(Category,on_delete=models.SET_NULL,null=True,blank=True,
+        related_name="recipe",
+    )
+    ingredients = models.TextField(null=False)
+    description = models.TextField(null=True)
+    instructions = models.TextField(null=False)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="recipe")
+
+    created_at = models.DateTimeField(auto_now_add=True)  
+    updated_at = models.DateTimeField(auto_now=True)
+
+    slug = models.SlugField(editable=False, unique=True)
+    #slug = models.SlugField(blank=True)
+
+    def __str__(self):
+        return self.title
+  
 
 @receiver(post_save, sender=User)
 def assign_permissions(sender, instance, created, **kwargs):

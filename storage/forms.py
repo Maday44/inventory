@@ -45,6 +45,19 @@ class OtherForm(forms.ModelForm):
             "image": "Upload Image",
         }
 
+class RecipeForm(forms.ModelForm):
+    class Meta:
+        model = Recipe
+        fields = ["picture", "title", "category", "ingredients", "description","instructions"]
+        labels = {
+            "picture": "Image",
+            "category": "Category",
+            "title": "Name",
+            "ingredients": "Ingredients",
+            "description": "Description",
+            "instructions": "Instructions",
+
+        }
 
 class CategoryForm(forms.ModelForm):
     class Meta:
@@ -88,11 +101,12 @@ class ShoppingItemForm(forms.ModelForm):
             "purchased",
         ]
 
-
 class EmailChangeForm(forms.Form):
     new_email = forms.EmailField(label="New email", required=True)
     password = forms.CharField(
-        label="Current password", widget=forms.PasswordInput, required=True
+        label="Current password",
+        widget=forms.PasswordInput,
+        required=True
     )
 
     def __init__(self, user, *args, **kwargs):
@@ -100,15 +114,19 @@ class EmailChangeForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def clean_password(self):
-        password = self.cleaned_data["password"]
+        password = self.cleaned_data.get("password")
+
         if not self.user.check_password(password):
             raise forms.ValidationError("Incorrect password.")
+
         return password
 
     def clean_new_email(self):
-        email = self.cleaned_data["new_email"]
+        email = self.cleaned_data.get("new_email")
+
         if email == self.user.email:
             raise forms.ValidationError("This is already your email.")
+
         return email
 
 

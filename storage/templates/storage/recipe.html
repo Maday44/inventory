@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+{% include "storage/navbar.html" %}
+
+<div class="container mt-4">
+  <h2>{{ family_name }}'s Recipes</h2>
+
+</div>
+{% if perms.storage.add_shopping_list %}
+    <div class="text-end mb-3">
+        <a href="" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Add a new recipe
+        </a>
+    </div>
+{% endif %}
+
+    {% if recipes %}
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            {% for recipe in recipes %}
+            <div class="col">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+    <div class="row align-items-center">
+
+        <div class="col-md-8">
+            <h5 class="card-title">
+                <a href="{% url 'recipe_detail' recipe.slug %}" class="text-decoration-none text-dark fw-bold">
+                    {{ recipe.title }}
+                </a>
+            </h5>
+
+            {% if recipe.category %}
+            <p class="text-muted mb-1">
+                Category: <strong>{{ recipe.category.name }}</strong>
+            </p>
+            {% endif %}
+
+            <p class="mb-1">
+                Created: {{ recipe.created_at|date:"d M Y" }}
+            </p>
+
+            <p class="mb-1">
+                Last Updated: {{ recipe.updated_at|date:"d M Y H:i" }}
+            </p>
+        </div>
+
+        <div class="col-md-4 text-end">
+            {% if recipe.picture %}
+                <img src="{{ recipe.picture.url }}"
+                     class="img-fluid rounded"
+                     style="max-height:150px; object-fit:cover;">
+            {% else %}
+                <img src="{% static 'images/default-recipe.jpg' %}"
+                     class="img-fluid rounded"
+                     style="max-height:150px; object-fit:cover;">
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center mt-5">
+            <p class="text-muted fs-5">You don’t have any recipes yet.</p>
+            <a href="{% url 'add_shopping_list' %}" class="btn btn-outline-primary">
+                <i class="bi bi-plus"></i> Create a recipe
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+

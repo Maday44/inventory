@@ -9,7 +9,7 @@
   {% if perms.storage.change_food_items %}
     <div class="d-flex justify-content-end mb-3">
       <a
-        href="{% url 'food_edit' food.slug %}"
+        href=""
         class="btn btn-outline-secondary btn-sm"
         title="Edit Food Item"
       >
@@ -29,43 +29,35 @@
       <div class="card mb-4 shadow-sm">
         <div class="row g-0">
 
-          <div class="col-md-4">
-            <img
-              src="{{ food.image.url }}"
-              class="img-fluid rounded-start"
-              alt="{{ food.title }}"
-              style="width: 100%; height: 350px; object-fit: cover;"
-            >
+            <div class="col-md-4">
+            {% if recipe.picture %}
+              <img
+                src="{{ recipe.picture.url }}"
+                class="img-fluid rounded-start"
+                alt="{{ recipe.title }}"
+                style="width: 100%; height: 350px; object-fit: cover;"
+              >
+            {% endif %}
           </div>
 
           <div class="col-md-8">
             <div class="card-body d-flex flex-column h-100">
 
+              {% comment %} Recipe Info {% endcomment %}
               <div>
-                {% if food.brand %}
-                  <p class="text-muted mb-1 small">{{ food.brand }}</p>
+                {% if recipe.brand %}
+                  <p class="text-muted mb-1 small">{{ recipe.brand }}</p>
                 {% endif %}
 
-                <h5 class="card-title fw-semibold">{{ food.title }}</h5>
+                <h5 class="card-title fw-semibold">{{ recipe.title }}</h5>
 
-                <p class="card-text">
-                  Category: {{ food.category }}<br>
-                  Quantity: {{ food.quantity }}<br>
-                  Price: {{ food.price }}<br>
-                  Expiry Date: {{ food.exp_date }}
+                <p class="card-text mb-0">
+                  {% if recipe.category %}Category: {{ recipe.category }}<br>{% endif %}
+                  {% if recipe.quantity %}Quantity: {{ recipe.quantity }}<br>{% endif %}
+                  {% if recipe.price %}Price: {{ recipe.price }}<br>{% endif %}
+                  {% if recipe.exp_date %}Expiry Date: {{ recipe.exp_date }}{% endif %}
                 </p>
               </div>
-
-              {% if perms.storage.change_itemexpiry and food.exp_date < today %}
-                <div class="mt-auto text-end">
-                  <a
-                    href="{% url 'place_in_expired_items' food.slug %}"
-                    class="btn btn-success btn-sm shadow-sm"
-                  >
-                    Place in “Expired Items”
-                  </a>
-                </div>
-              {% endif %}
 
             </div>
           </div>
@@ -76,12 +68,12 @@
   </div>
 
   <div class="container mt-5 d-flex justify-content-between">
-    <a href="{% url 'all_food' %}" class="btn btn-primary">
+    <a href="" class="btn btn-primary">
       Back
     </a>
 
     {% if perms.storage.delete_other_items %}
-      <a href="{% url 'food-delete' food.slug %}" class="btn btn-danger">
+      <a href="" class="btn btn-danger">
         Delete
       </a>
     {% endif %}

@@ -16,7 +16,7 @@
     <li><a href="{% url 'all_other_items' %}" class="nav-link px-3 text-dark">{% trans 'Other Items' %}</a></li>
     <li><a href="{% url 'all_shopping_list' %}" class="nav-link px-3 text-dark">{% trans 'Shopping List' %}</a></li>
     <li><a href="{% url 'members' %}" class="nav-link px-3 text-dark">{% trans 'Members' %}</a></li>
-    <li><a href="{% url 'all_other_items' %}" class="nav-link px-3 text-dark">{% trans 'Recipes' %}</a></li>
+    <li><a href="{% url 'recipes' %}" class="nav-link px-3 text-dark">{% trans 'Recipes' %}</a></li>
 
 
     <li class="nav-item">
@@ -25,7 +25,6 @@
         <div class="dropdown-content-nav">
           <a href="{% url 'search_bar' %}">{% trans 'Search' %}</a>
           <a href="{% url 'expired_items' %}">{% trans 'Expired Foods' %}</a>
-          <a href="{% url 'expired_items' %}">{% trans 'Recently deleted' %}</a>
           <a href="{% url 'settings' %}">{% trans 'Settings' %}</a>
         </div>
       </div>

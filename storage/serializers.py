@@ -49,3 +49,10 @@ class ShopListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShoppingList
         fields = "__all__"
+
+class RecipeSerializer(serializers.ModelSerializer):
+    items = ShopItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Recipe
+        fields = "__all__"

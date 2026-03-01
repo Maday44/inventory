@@ -5,7 +5,7 @@
 {% include "storage/navbar.html" %}
 
 <div class="container mt-5">
-    <h2 class="mb-4 text-center">🛒 Family Shopping Lists</h2>
+    <h2 class="mb-4 text-center">Family Shopping Lists</h2>
 
 {% if perms.storage.add_shopping_list %}
     <div class="text-end mb-3">
@@ -22,7 +22,7 @@
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-body">
                         <h5 class="card-title">
-                            {# Link to the detail view using slug. If your urls.py uses pk instead, replace list.slug with list.pk #}
+                    
                             <a href="{% url 'view_shopping_list' list.slug %}" class="text-decoration-none text-dark fw-bold">
                                 {{ list.title }}
                             </a>

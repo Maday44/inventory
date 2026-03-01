@@ -12,6 +12,7 @@ admin.site.register(Shopitems)
 admin.site.register(ShoppingList)
 admin.site.register(Family)
 admin.site.register(FamilyMember)
+admin.site.register(Recipe)
 
 
 class ProfileAdmin(admin.ModelAdmin):
@@ -44,7 +45,7 @@ class FamilyAdmin(admin.ModelAdmin):
     inlines = [FamilyMemberInline]
 
     def member_count(self, obj):
-        return obj.memberships.count()  # Use the FamilyMember model
+        return obj.memberships.count()
 
     member_count.short_description = "Number of Members"
 

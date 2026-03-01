@@ -13,16 +13,12 @@
     {% endfor %}
   {% endif %}
 
-  <!-- ===================== -->
-  <!-- Appearance Settings -->
-  <!-- ===================== -->
   <section class="mb-5">
     <h4 class="mb-3">Appearance</h4>
 
     <form method="POST">
       {% csrf_token %}
 
-      <!-- Theme -->
       <div class="mb-3">
         <label class="form-label fw-semibold">Theme</label>
         <select name="theme" class="form-select">
@@ -32,7 +28,6 @@
         </select>
       </div>
 
-      <!-- Font Size -->
       <div class="mb-3">
         <label class="form-label fw-semibold">
           Font Size ({{ profile.font_size }}px)
@@ -47,7 +42,6 @@
         >
       </div>
 
-      <!-- Letter Spacing -->
       <div class="mb-3">
         <label class="form-label fw-semibold">
           Letter Spacing ({{ profile.letter_spacing }}px)
@@ -125,12 +119,6 @@
 
   <hr>
   
-  <section class="mb-5">
-    <h4 class="mb-3">Terms & Conditions</h4>
-  </section>
-
-  <hr>
-
   <section class="mb-5">
     <h4 class="text-danger mb-3">Danger Zone</h4>
 
